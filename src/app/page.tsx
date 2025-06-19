@@ -1,7 +1,12 @@
-export default function Home() {
+import VantaDotsBackground from "@/app/components/VantaDotsBackground";
+
+export default function Page() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-      <h1 className="text-4xl font-bold">Tailwind is working 🎉</h1>
+    <main className="relative min-h-screen overflow-hidden">
+      <VantaDotsBackground />
+      <div className="relative z-10 flex items-center justify-center h-screen">
+        <h1 className="text-4xl font-bold text-white">AI Skill Enhancer</h1>
+      </div>
     </main>
   );
 }
