@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "next": "15.3.4",
+    "openai": "^5.5.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "three": "^0.177.0",

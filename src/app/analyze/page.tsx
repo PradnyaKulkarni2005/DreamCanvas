@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { useState } from 'react';
 import RoleSelector from '@/app/components/RoleSelector';
 import { useRouter } from 'next/navigation';
@@ -7,18 +7,42 @@ export default function AnalyzePage() {
   const router = useRouter();
   const [skills, setSkills] = useState('');
   const [role, setRole] = useState('');
-    
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!skills || !role) return alert("Please fill in all fields");
+    if (!skills || !role) {
+      return alert("Please fill in all fields");
+    }
 
-    // Save to localStorage or Zustand for now
-    localStorage.setItem('userSkills', skills);
-    localStorage.setItem('targetRole', role);
+    setLoading(true);
 
-    // Navigate to roadmap
-    router.push('/roadmap');
+    try {
+      const res = await fetch('/api/generate-roadmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skills, role }),
+      });
+
+      const data = await res.json();
+      
+
+      if (!data.roadmap) {
+        throw new Error('Invalid response from AI');
+      }
+
+      // Save to localStorage or Zustand
+      localStorage.setItem('roadmap', JSON.stringify(data.roadmap));
+      localStorage.setItem('missingSkills', JSON.stringify(data.missingSkills));
+      localStorage.setItem('targetRole', role);
+
+      router.push('/roadmap');
+    } catch (error) {
+      alert("Error generating roadmap");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,8 +65,9 @@ export default function AnalyzePage() {
         <button
           type="submit"
           className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+          disabled={loading}
         >
-          Generate Roadmap
+          {loading ? "Generating..." : "Generate Roadmap"}
         </button>
       </form>
     </div>
