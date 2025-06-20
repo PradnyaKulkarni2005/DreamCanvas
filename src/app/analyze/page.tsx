@@ -10,40 +10,44 @@ export default function AnalyzePage() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!skills || !role) {
-      return alert("Please fill in all fields");
+  if (!skills || !role) {
+    return alert("Please fill in all fields");
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch('/api/generate-roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skills, role }),
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error);
     }
 
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/generate-roadmap', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skills, role }),
-      });
-
-      const data = await res.json();
-      
-
-      if (!data.roadmap) {
-        throw new Error('Invalid response from AI');
-      }
-
-      // Save to localStorage or Zustand
-      localStorage.setItem('roadmap', JSON.stringify(data.roadmap));
-      localStorage.setItem('missingSkills', JSON.stringify(data.missingSkills));
-      localStorage.setItem('targetRole', role);
-
-      router.push('/roadmap');
-    } catch (error) {
-      alert("Error generating roadmap");
-    } finally {
-      setLoading(false);
+    if (!data.roadmap) {
+      throw new Error('Invalid response format received.');
     }
-  };
+
+    localStorage.setItem('roadmap', JSON.stringify(data.roadmap));
+    localStorage.setItem('missingSkills', JSON.stringify(data.missingSkills));
+    localStorage.setItem('targetRole', role);
+
+    router.push('/roadmap');
+  } catch (error: any) {
+    console.error("Roadmap generation error:", error);
+    alert(error.message || "Error generating roadmap");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-xl mx-auto p-6 space-y-6">
@@ -62,13 +66,16 @@ export default function AnalyzePage() {
 
         <RoleSelector value={role} onChange={setRole} />
 
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-          disabled={loading}
-        >
-          {loading ? "Generating..." : "Generate Roadmap"}
-        </button>
+       <button
+  type="submit"
+  className={`bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ${
+    loading ? 'opacity-50 cursor-not-allowed' : ''
+  }`}
+  disabled={loading}
+>
+  {loading ? "Generating..." : "Generate Roadmap"}
+</button>
+
       </form>
     </div>
   );

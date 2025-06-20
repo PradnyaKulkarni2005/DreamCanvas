@@ -9,9 +9,10 @@ const nextConfig: NextConfig = {
 // without this, the API key won't be available in the browser
 module.exports = {
   env: {
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
   },
 };
+
 
 
 export default nextConfig;
