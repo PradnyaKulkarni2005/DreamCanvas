@@ -1,28 +1,57 @@
-'use client'
-import { roles } from '@/app/libs/roles';
-// Interface - like blueprint that describes what properties a component or object should have
-// here ,RoleSelectorProps is an interface which expects two props: 1. value (string) and 2. onChange (function that takes a string and returns void)
-// This interface helps ensure that the component receives the correct type of props, making it easier to
-interface RoleSelectorProps {
+'use client';
+import { roles } from '@/app/libs/roles'; // import the roles array from the roles module
+import './inputfield.css'; // the custom select styles
+
+export default function RoleSelector({
+  value,
+  onChange,
+}: {
   value: string;
-  onChange: (value: string) => void;
-}
-// RoleSelector component - a reusable component that allows users to select a role from a dropdown list
-// It takes two props: value (the currently selected role) and onChange (a function that updates the selected role)
-export default function RoleSelector({ value, onChange }: RoleSelectorProps) {
+  onChange: (val: string) => void;
+}) {
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium">Select Target Role</label>
-      <select
-        className="p-2 border rounded-md"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div className="select">
+      <div
+        className="selected"
+        data-default="Select Role"
+        {...roles.reduce(
+          (acc, role, i) => ({ ...acc, [`data-${i + 1}`]: role }),
+          {}
+        )}
       >
-        <option value="">-- Select a role --</option>
-        {roles.map((role) => (
-          <option key={role} value={role}>{role}</option>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="1em"
+          viewBox="0 0 512 512"
+          className="arrow"
+        >
+          <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" />
+        </svg>
+      </div>
+
+      <div className="options">
+        <div title="default">
+          <input id="all" name="role" type="radio" defaultChecked />
+          <label
+            className="option"
+            htmlFor="all"
+            data-txt="Select Role"
+            onClick={() => onChange('')}
+          />
+        </div>
+
+        {roles.map((role, index) => (
+          <div key={role} title={role}>
+            <input id={`role-${index}`} name="role" type="radio" />
+            <label
+              className="option"
+              htmlFor={`role-${index}`}
+              data-txt={role}
+              onClick={() => onChange(role)}
+            />
+          </div>
         ))}
-      </select>
+      </div>
     </div>
   );
 }
