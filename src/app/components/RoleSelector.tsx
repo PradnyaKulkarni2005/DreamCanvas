@@ -1,6 +1,6 @@
 'use client';
 import { roles } from '@/app/libs/roles'; // import the roles array from the roles module
-import './inputfield.css'; // the custom select styles
+import { useState } from 'react';
 
 export default function RoleSelector({
   value,
@@ -9,49 +9,57 @@ export default function RoleSelector({
   value: string;
   onChange: (val: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (role: string) => {
+    onChange(role);
+    setOpen(false);
+  };
+
   return (
-    <div className="select">
-      <div
-        className="selected"
-        data-default="Select Role"
-        {...roles.reduce(
-          (acc, role, i) => ({ ...acc, [`data-${i + 1}`]: role }),
-          {}
-        )}
+    <div className="relative w-full max-w-md">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full bg-[#1f2937] text-white font-medium py-3 px-5 rounded-xl shadow-md flex justify-between items-center hover:bg-[#111827] transition duration-300"
       >
+        <span>{value || 'Select Role'}</span>
         <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="1em"
-          viewBox="0 0 512 512"
-          className="arrow"
+          className={`w-5 h-5 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
         >
-          <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" />
-        </svg>
-      </div>
-
-      <div className="options">
-        <div title="default">
-          <input id="all" name="role" type="radio" defaultChecked />
-          <label
-            className="option"
-            htmlFor="all"
-            data-txt="Select Role"
-            onClick={() => onChange('')}
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.353a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z"
+            clipRule="evenodd"
           />
-        </div>
+        </svg>
+      </button>
 
-        {roles.map((role, index) => (
-          <div key={role} title={role}>
-            <input id={`role-${index}`} name="role" type="radio" />
-            <label
-              className="option"
-              htmlFor={`role-${index}`}
-              data-txt={role}
-              onClick={() => onChange(role)}
-            />
-          </div>
-        ))}
-      </div>
+      {open && (
+        <ul
+          className="absolute z-10 mt-2 w-full bg-[#1f2937] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto animate-fade-in-up"
+        >
+          <li
+            className="px-4 py-2 text-gray-300 hover:bg-emerald-600 hover:text-white cursor-pointer rounded-t-xl"
+            onClick={() => handleSelect('')}
+          >
+            Select Role
+          </li>
+          {roles.map((role) => (
+            <li
+              key={role}
+              className={`px-4 py-2 cursor-pointer text-sm hover:bg-emerald-600 hover:text-white ${
+                role === value ? 'bg-emerald-700 text-white' : 'text-gray-300'
+              }`}
+              onClick={() => handleSelect(role)}
+            >
+              {role}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

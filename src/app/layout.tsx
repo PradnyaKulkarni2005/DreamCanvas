@@ -1,20 +1,20 @@
-// src/app/layout.tsx
-import './globals.css'
-import { ReactNode } from 'react'
+// app/layout.tsx
+import './globals.css';
+import BackgroundWrapper from '@/app/components/BackgroundWrapper';
 
 export const metadata = {
-  title: 'AI Skill Enhancer',
-  description: 'Analyze and enhance your skills for your dream job',
-}
+  title: 'AI Skill Gap Analyzer',
+  description: 'Find your skill gaps and get a custom roadmap',
+};
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 text-gray-800 antialiased">
-        <main className="mx-auto">
+      <body>
+        <BackgroundWrapper>
           {children}
-        </main>
+        </BackgroundWrapper>
       </body>
     </html>
-  )
+  );
 }
