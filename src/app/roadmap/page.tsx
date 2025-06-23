@@ -1,5 +1,8 @@
 'use client';
+
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 // Interface - like a blueprint for an object
 // This interface defines the structure of each roadmap item
@@ -26,23 +29,45 @@ export default function RoadmapPage() {
   const [missingSkills, setMissingSkills] = useState<string[]>([]);
   const [role, setRole] = useState('');
   const [videoMap, setVideoMap] = useState<Record<string, VideoResult[]>>({});
+  const [loading, setLoading] = useState(true);
 
-  // Load roadmap and skills from localStorage on component mount
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+
+  // Check if user is authenticated on mount
   useEffect(() => {
-    const stored = localStorage.getItem('roadmap');
-    const skills = localStorage.getItem('missingSkills');
-    const target = localStorage.getItem('targetRole');
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (stored) setRoadmap(JSON.parse(stored));
-    if (skills) setMissingSkills(JSON.parse(skills));
-    if (target) setRole(target);
-  }, []);
+      if (!user) {
+        // If not logged in, redirect to login page
+        router.push('/login');
+      } else {
+        // Load roadmap and skills from localStorage if user is authenticated
+        const stored = localStorage.getItem('roadmap');
+        const skills = localStorage.getItem('missingSkills');
+        const target = localStorage.getItem('targetRole');
 
-  // Fetch YouTube videos for each subtask in the roadmap
+        if (stored) setRoadmap(JSON.parse(stored));
+        if (skills) setMissingSkills(JSON.parse(skills));
+        if (target) setRole(target);
+
+        setLoading(false); // Done loading
+      }
+    };
+
+    checkAuth();
+  }, [supabase, router]);
+
+  // --- COMMENTED OUT VIDEO FETCHING FOR NOW ---
+  // You can re-enable this block later when videos are needed
+  /*
   useEffect(() => {
     const fetchYouTubeVideos = async (query: string): Promise<VideoResult[]> => {
       try {
-        const res = await fetch('/api/search-youtoube', {
+        const res = await fetch('/api/search-youtube', {
           method: 'POST',
           body: JSON.stringify({ query }),
         });
@@ -70,6 +95,10 @@ export default function RoadmapPage() {
 
     if (roadmap.length > 0) fetchAllVideos();
   }, [roadmap]);
+  */
+
+  // Display loading while auth/roadmap loads
+  if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 text-white animate-fade-in">
@@ -100,7 +129,9 @@ export default function RoadmapPage() {
                 <li key={idx} className="hover:text-white transition">
                   {task}
 
-                  {/* Video suggestions for this task */}
+                  {/* Video suggestions temporarily disabled */}
+                  {/* Enable this block later when ready */}
+                  {/* 
                   <div className="mt-2 ml-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {videoMap[task]?.map((video) => (
                       <a
@@ -123,7 +154,8 @@ export default function RoadmapPage() {
                     )) || (
                       <p className="text-gray-500 text-xs">Loading videos...</p>
                     )}
-                  </div>
+                  </div> 
+                  */}
                 </li>
               ))}
             </ul>
