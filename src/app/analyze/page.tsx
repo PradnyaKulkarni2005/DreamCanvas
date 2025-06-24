@@ -17,16 +17,20 @@ export default function AnalyzePage() {
   // ✅ Auth check with onAuthStateChange
   useEffect(() => {
     const checkSession = async () => {
+      // Get the current session from Supabase
       const { data } = await supabase.auth.getSession();
+      // If session exists, user is authenticated
+      // If not, redirect to login page
       if (data.session) {
         setCheckingAuth(false);
       } else {
         router.replace('/login');
       }
     };
-
+// Call the checkSession function to verify authentication status
     checkSession();
-
+// Subscribe to auth state changes
+    // This will handle cases where the user logs in or out while on this page
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setCheckingAuth(false);
@@ -34,11 +38,13 @@ export default function AnalyzePage() {
         router.replace('/login');
       }
     });
-
+// Cleanup the listener when the component unmounts
+    // This prevents memory leaks and ensures we don't have multiple listeners active
     return () => {
       listener?.subscription.unsubscribe();
     };
   }, [router]);
+  // ✅ Handle form submission
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +52,7 @@ export default function AnalyzePage() {
 
     setLoading(true);
     try {
+      // Call the API endpoint to analyze the user's skills and role
       const res = await fetch('/api/generate-roadmap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

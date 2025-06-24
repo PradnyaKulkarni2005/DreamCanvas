@@ -9,7 +9,8 @@ export async function POST(req: Request) {
     if (!email || !password) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
-
+    
+// data to store in the auth table
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
     if (signUpError) {
       return NextResponse.json({ error: signUpError.message }, { status: 400 });
     }
-
+// data to store in the users table
     const user = signUpData.user;
 
     if (user) {

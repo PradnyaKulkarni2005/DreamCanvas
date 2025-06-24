@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import DownloadPDFButton from '@/app/components/DownloadPDFButton';
 
 // Interface - like a blueprint for an object
 // This interface defines the structure of each roadmap item
@@ -101,7 +102,7 @@ export default function RoadmapPage() {
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 text-white animate-fade-in">
+    <div className="max-w-3xl mx-auto p-6 text-white animate-fade-in" >
       <h1 className="text-3xl font-bold mb-4 text-emerald-400 animate-fade-in-up">
         Your Roadmap to Become a {role}
       </h1>
@@ -110,8 +111,8 @@ export default function RoadmapPage() {
         <strong className="text-white">Skills to Learn:</strong>{' '}
         {missingSkills.length > 0 ? missingSkills.join(', ') : 'None'}
       </p>
-
-      <div className="space-y-6">
+    <DownloadPDFButton targetId="roadmap-to-print" />
+      <div id='roadmap-to-print' className="bg-[#0d1117] text-white p-6 space-y-6">
         {/* Mapping through the roadmap array and display each item */}
         {roadmap.map((item, index) => (
           <div
