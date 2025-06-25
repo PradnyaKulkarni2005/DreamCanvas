@@ -1,35 +1,53 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-// This API route searches YouTube for videos based on a query string
-// It returns a JSON response with the video titles, IDs, channels, and thumbnails
+
 export async function POST(req: NextRequest) {
-    // Parse the request body to get the search query
-  const { query } = await req.json();
-// If the query is missing, return a 400 error response
-  if (!query) {
-    return NextResponse.json({ error: 'Missing query' }, { status: 400 });
+  try {
+    const { query, target } = await req.json();
+
+    if (!query) {
+      return NextResponse.json({ error: 'Missing query' }, { status: 400 });
+    }
+
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) {
+      console.error('Missing YOUTUBE_API_KEY');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    const finalQuery = target ? `${query} ${target}` : query;
+    const searchParams = new URLSearchParams({
+      part: 'snippet',
+      q: finalQuery,
+      type: 'video',
+      maxResults: '6',
+      key: apiKey,
+    });
+
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
+
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error('YouTube API error:', res.status, errorBody);
+      return NextResponse.json({ error: 'YouTube API request failed' }, { status: 500 });
+    }
+
+    const data = await res.json();
+
+    if (!data.items) {
+      console.error('No items in response:', data);
+      return NextResponse.json({ error: 'YouTube API response malformed' }, { status: 500 });
+    }
+
+    const results = data.items.map((item: any) => ({
+      title: item.snippet.title,
+      videoId: item.id.videoId,
+      channel: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails.medium.url,
+    }));
+
+    return NextResponse.json(results);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return NextResponse.json({ error: 'Unexpected server error' }, { status: 500 });
   }
-// URLSearchParams is used to construct the query parameters for the YouTube API request
-//query parameters include part, q, type, maxResults, and key
-  const searchParams = new URLSearchParams({
-    part: 'snippet',
-    q: query,
-    type: 'video',
-    maxResults: '3',
-    key: process.env.YOUTUBE_API_KEY!,
-  });
-    // Fetch the YouTube API with the constructed search parameters
-
-  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
-  //stores the response from the YouTube API
-  const data = await res.json();
-// results is an array of video objects, each containing title, videoId, channel, and thumbnail is mapped from the API response
-  const results = data.items.map((item: any) => ({
-    title: item.snippet.title,
-    videoId: item.id.videoId,
-    channel: item.snippet.channelTitle,
-    thumbnail: item.snippet.thumbnails.medium.url,
-  }));
-
-  return NextResponse.json(results);
 }
