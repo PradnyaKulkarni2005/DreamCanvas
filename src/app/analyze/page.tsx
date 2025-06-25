@@ -65,6 +65,8 @@ export default function AnalyzePage() {
       localStorage.setItem('roadmap', JSON.stringify(data.roadmap));
       localStorage.setItem('missingSkills', JSON.stringify(data.missingSkills));
       localStorage.setItem('targetRole', role);
+      localStorage.removeItem('hasSavedRoadmap'); // ✅ Force re-saving in roadmap page
+
 
       router.push('/roadmap');
     } catch (err: any) {
