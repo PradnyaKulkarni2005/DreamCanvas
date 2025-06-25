@@ -1,18 +1,27 @@
 import React from 'react';
-// imported videoresult from types
 import { VideoResult } from '@/types';
 
-// VideoCard component takes a video prop of type VideoResult
 export default function VideoCard({ video }: { video: VideoResult }) {
   return (
-    // link to YouTube video with videoId
-    <a href={`https://youtube.com/watch?v=${video.videoId}`} target="_blank">
-       {/* displays video details */}
-      <div className="rounded-xl shadow-md p-2 hover:scale-105 transition">
-
-        <img src={video.thumbnail} alt={video.title} className="rounded" />
-        <p className="text-sm font-medium mt-1">{video.title}</p>
-        <p className="text-xs text-gray-500">{video.channel}</p>
+    // Ensure the video object has all required properties
+    <a
+      href={`https://youtube.com/watch?v=${video.videoId}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={video.title}
+    >
+      {/* // Use a link to open the video in a new tab */}
+      <div className="rounded-xl shadow-md p-2 bg-[#1e1e1e] hover:scale-105 transition duration-200">
+        <img
+          src={video.thumbnail}
+          alt={video.title || 'YouTube Video Thumbnail'}
+          className="rounded w-full"
+          loading="lazy"
+        />
+        <p className="text-sm font-medium mt-2 text-white line-clamp-2">
+          {video.title}
+        </p>
+        <p className="text-xs text-gray-400">{video.channel}</p>
       </div>
     </a>
   );
