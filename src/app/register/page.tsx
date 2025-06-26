@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -26,13 +27,32 @@ export default function RegisterPage() {
 
     if (res.ok) {
       alert('Registration successful!');
+      Swal.fire({
+        title: 'Registration successful!',
+        text: 'You can now log in to your account.',
+        icon: 'success',
+        position:"top"
+
+      })
       router.push('/login');
     } else {
-      alert(data.error || 'Registration failed');
+      
+      Swal.fire({
+        title: 'Oops ,',
+        text: data.error || 'Registration failed',
+        icon: 'error',
+        position:"top"
+      })
     }
   } catch (err) {
     setLoading(false);
-    alert('Something went wrong. Please try again.');
+    
+    Swal.fire({
+      title: 'Oops ,',
+      text: 'Something went wrong. Please try again.',
+      icon: 'error',
+      position:"top"
+    })
     console.error('Register error:', err);
   }
 };

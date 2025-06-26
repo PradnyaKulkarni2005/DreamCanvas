@@ -3,6 +3,7 @@ import { useEffect,useState } from 'react';
 import { supabase } from '@/app/libs/supabaseClient';
 import VideoCard from './VideoCard';
 import { RoadmapItem, VideoResult } from '@/types';
+import Swal from 'sweetalert2';
 // takes a roadmap item and a video map, rendering the day's section with topics and videos
 export default function DaySection({
   item,
@@ -20,16 +21,18 @@ export default function DaySection({
     : item.topic
     ? [item.topic]
     : [];
-
+// State to store the videos for the current day
     const  [completed, setCompleted] = useState<Record<string, boolean>>({});
+
     useEffect(() => {
     const fetchProgress = async () => {
+      // Fetch the user's progress from Supabase
       const { data, error } = await supabase
         .from('progress')
         .select('task, completed')
         .eq('user_id', userId)
         .eq('day', `Day ${item.day}`);
-
+// Update the state with the fetched progress
       if (data) {
         const initial: Record<string, boolean> = {};
         data.forEach((entry) => {
@@ -40,16 +43,20 @@ export default function DaySection({
         console.error('Error fetching progress:', error);
       }
     };
+    // debugging line
 console.log("UserID",userId)
     if (userId) {
       fetchProgress();
     }
   }, [userId, item.day]);
-
+// Render the day's section with topics and videos
   const handleToggle = async (topic: string) => {
+    // Toggle the completion status of the topic
     const newValue = !completed[topic];
+    // Update the state with the new completion status
     setCompleted((prev) => ({ ...prev, [topic]: newValue }));
 console.log("UserID",userId)
+// Insert the data into supabase
     const { error } = await supabase.from('progress').upsert(
       {
         user_id: userId,
@@ -61,9 +68,18 @@ console.log("UserID",userId)
         onConflict: 'user_id,day,task',
       }
     );
+    // 
 
     if (!error && newValue) {
-      alert(`✅ Completed: "${topic}" for Day ${item.day}`);
+      // alert(`✅ Completed: "${topic}" for Day ${item.day}`);
+      Swal.fire(
+        {
+          title: "Completed",
+          text: `You have completed "${topic}" for Day ${item.day}.`,
+          icon: "success",
+          position:"center"
+        }
+      )
     } else if (error) {
       console.error('Error saving progress:', error);
     }

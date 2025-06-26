@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,6 +25,12 @@ export default function LoginPage() {
 
       if (!res.ok) {
         alert(data.error || 'Login failed');
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Login failed',
+          position:"top"
+        })
         return;
       }
 
@@ -32,11 +39,18 @@ export default function LoginPage() {
         router.push('/analyze');
       } else {
         alert('Invalid response from server');
+        
       }
     } catch (error) {
       console.error('Login error:', error);
       setLoading(false);
-      alert('Something went wrong. Please try again.');
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Something went wrong ,Please try again.',
+        position:"top"
+      })
     }
   };
 
