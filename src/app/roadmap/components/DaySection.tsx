@@ -1,12 +1,17 @@
+'use client'
+import { useEffect,useState } from 'react';
+import { supabase } from '@/app/libs/supabaseClient';
 import VideoCard from './VideoCard';
 import { RoadmapItem, VideoResult } from '@/types';
 // takes a roadmap item and a video map, rendering the day's section with topics and videos
 export default function DaySection({
   item,
   videoMap,
+  userId
 }: {
   item: RoadmapItem & { topics?: string[]; topic?: string };
   videoMap: Record<string, VideoResult[]>;
+  userId:string
 }) {
   // Normalize topics: prefer `topics`, fallback to single `topic`, else empty array
   // This ensures we handle both cases where `topics` is an array or a single string
@@ -15,6 +20,55 @@ export default function DaySection({
     : item.topic
     ? [item.topic]
     : [];
+
+    const  [completed, setCompleted] = useState<Record<string, boolean>>({});
+    useEffect(() => {
+    const fetchProgress = async () => {
+      const { data, error } = await supabase
+        .from('progress')
+        .select('task, completed')
+        .eq('user_id', userId)
+        .eq('day', `Day ${item.day}`);
+
+      if (data) {
+        const initial: Record<string, boolean> = {};
+        data.forEach((entry) => {
+          initial[entry.task] = entry.completed;
+        });
+        setCompleted(initial);
+      } else {
+        console.error('Error fetching progress:', error);
+      }
+    };
+console.log("UserID",userId)
+    if (userId) {
+      fetchProgress();
+    }
+  }, [userId, item.day]);
+
+  const handleToggle = async (topic: string) => {
+    const newValue = !completed[topic];
+    setCompleted((prev) => ({ ...prev, [topic]: newValue }));
+console.log("UserID",userId)
+    const { error } = await supabase.from('progress').upsert(
+      {
+        user_id: userId,
+        day: `Day ${item.day}`,
+        task: topic,
+        completed: newValue,
+      },
+      {
+        onConflict: 'user_id,day,task',
+      }
+    );
+
+    if (!error && newValue) {
+      alert(`✅ Completed: "${topic}" for Day ${item.day}`);
+    } else if (error) {
+      console.error('Error saving progress:', error);
+    }
+  };
+
 
   return (
     <div className="mb-8">
@@ -37,11 +91,25 @@ export default function DaySection({
 
       {/* Topics + Videos */}
       {topics.map((topic) => (
-        <div key={topic} className="mb-6">
-          <h3 className="text-lg font-medium mb-2 text-white">{topic}</h3>
+        <div key={topic} className="mb-6 border-b border-gray-700 pb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <input
+              type="checkbox"
+              checked={!!completed[topic]}
+              onChange={() => handleToggle(topic)}
+              className="w-5 h-5"
+            />
+            <h3
+              className={`text-lg font-medium text-white ${
+                completed[topic] ? 'line-through text-gray-400' : ''
+              }`}
+            >
+              {topic}
+            </h3>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {videoMap[topic] && videoMap[topic].length > 0 ? (
+            {videoMap[topic]?.length > 0 ? (
               videoMap[topic].map((video) => (
                 <VideoCard key={video.videoId} video={video} />
               ))
