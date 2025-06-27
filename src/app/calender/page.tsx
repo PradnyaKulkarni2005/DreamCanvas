@@ -5,6 +5,7 @@ import { supabase } from '@/app/libs/supabaseClient';
 import { RoadmapItem, VideoResult } from '@/types';
 import Loader from '@/app/components/Loader';
 import DaySection from '@/app/roadmap/components/DaySection';
+import ProgressBar from '../components/ProgressBar';
 
 export default function CalendarPage() {
   // usestates for storing roadmap data, videos, selected day, and target role
@@ -14,109 +15,112 @@ export default function CalendarPage() {
   const [videoMap, setVideoMap] = useState<Record<string, VideoResult[]>>({});
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [target, setTarget] = useState('');
-
+  const [userId, setUserId] = useState<string>(''); // ✅ Add userId state
+  const [videoLoading, setVideoLoading] = useState(false); // ✅ Video loading state
 
   // ✅ Fetch roadmap from Supabase
   useEffect(() => {
     const fetchRoadmap = async () => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-  if (!session) {
-    router.replace('/login');
-    return;
-  }
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
 
-  const userId = session.user.id;
-  console.log('🔍 Fetching roadmap for user:', userId);
+      const userId = session.user.id;
+      setUserId(userId); // ✅ Save userId to state
+      console.log('🔍 Fetching roadmap for user:', userId);
 
-  // ✅ Fetch the target role from users table
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('target')
-    .eq('id', userId)
-    .single();
+      // ✅ Fetch the target role from users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('target')
+        .eq('id', userId)
+        .single();
 
-  if (userError) {
-    console.error('❌ Failed to fetch target role:', userError.message);
-  } else if (userData?.target) {
-    setTarget(userData.target); // 🔑 Save to state
-  }
+      if (userError) {
+        console.error('❌ Failed to fetch target role:', userError.message);
+      } else if (userData?.target) {
+        setTarget(userData.target); // 🔑 Save to state
+      }
 
-  // ✅ Fetch the roadmap itself
-  // This retrieves all roadmap items for the current user
-  const { data, error } = await supabase
-    .from('roadmap')
-    .select('*')
-    .eq('user_id', userId);
+      // ✅ Fetch the roadmap itself
+      // This retrieves all roadmap items for the current user
+      const { data, error } = await supabase
+        .from('roadmap')
+        .select('*')
+        .eq('user_id', userId);
 
-  if (error || !Array.isArray(data)) {
-    console.error('❌ Failed to load roadmap', error);
-    router.replace('/analyze');
-    return;
-  }
-// ✅ Sort roadmap items by day
-// [...data].sort((a, b) => Number(a.day) - Number(b.day)) - means we create a new array from data and sort it by day
-  const sorted = [...data].sort((a, b) => Number(a.day) - Number(b.day));
-  setRoadmap(sorted);
-  setLoading(false);
-};
+      if (error || !Array.isArray(data)) {
+        console.error('❌ Failed to load roadmap', error);
+        router.replace('/analyze');
+        return;
+      }
 
+      // ✅ Sort roadmap items by day
+      // [...data].sort((a, b) => Number(a.day) - Number(b.day)) - means we create a new array from data and sort it by day
+      const sorted = [...data].sort((a, b) => Number(a.day) - Number(b.day));
+      setRoadmap(sorted);
+      setLoading(false);
+    };
 
     fetchRoadmap();
   }, [router]);
 
-  // ✅ Fetch video suggestions once roadmap is ready
-  useEffect(() => {
-    if (!roadmap.length) return;
+  // ✅ Fetch videos for selected day only
+  const fetchVideosForDay = async (day: number) => {
+    const item = roadmap.find((i) => i.day === day);
+    if (!item) return;
 
-    const fetchVideos = async () => {
-     
-      const uniqueTopics = new Set<string>();
+    const topics = Array.isArray(item.topics)
+      ? item.topics
+      : item.topic
+      ? [item.topic]
+      : [];
 
-      // ✅ Safely extract topics or fallback to single topic
-      // This ensures we handle both arrays and single topics
+    const newVideoMap = { ...videoMap };
+    let needFetch = false;
 
-      roadmap.forEach((item) => {
-        if (Array.isArray(item.topics)) {
-          item.topics.forEach((topic) => uniqueTopics.add(topic));
-        } else if (item.topic) {
-          uniqueTopics.add(item.topic);
+    // Check if any topic is missing from cache
+    for (const topic of topics) {
+      if (!newVideoMap[topic]) {
+        needFetch = true;
+        break;
+      }
+    }
+
+    if (!needFetch) return;
+
+    setVideoLoading(true); // ✅ Start loading spinner for video fetch
+
+    await Promise.all(
+      topics.map(async (topic) => {
+        if (newVideoMap[topic]) return;
+
+        try {
+          const res = await fetch('/api/search-youtoube', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `${topic} for ${target}` }),
+          });
+
+          if (!res.ok)
+            throw new Error(`YouTube API failed: ${res.statusText}`);
+          const data = await res.json();
+          newVideoMap[topic] = data || [];
+        } catch (err) {
+          console.error(`❌ Failed to fetch videos for "${topic}"`, err);
+          newVideoMap[topic] = [];
         }
-      });
-// newVideoMap is a record that will hold the video results for each topic
-      // ✅ Initialize videoMap with empty arrays for each unique topic
-      const newVideoMap: Record<string, VideoResult[]> = {};
-// This will hold the video results for each topic
-// promise.all is used to fetch videos for each unique topic concurrently for entire roadmap topics
-      await Promise.all(
-        // ✅ Map over unique topics and fetch videos
-        // This will fetch videos for each unique topic
-        Array.from(uniqueTopics).map(async (topic) => {
-          try {
-            const res = await fetch('/api/search-youtoube', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query: `${topic} for ${target}` }),
+      })
+    );
 
-            });
-
-            if (!res.ok) throw new Error(`YouTube API failed: ${res.statusText}`);
-            const data = await res.json();
-            newVideoMap[topic] = data || [];
-          } catch (err) {
-            console.error(`❌ Failed to fetch videos for "${topic}"`, err);
-            newVideoMap[topic] = [];
-          }
-        })
-      );
-
-      setVideoMap(newVideoMap);
-    };
-
-    fetchVideos();
-  }, [roadmap,target]);
+    setVideoMap(newVideoMap);
+    setVideoLoading(false); // ✅ End loading spinner
+  };
 
   // ✅ Show loading screen
   if (loading) {
@@ -135,6 +139,9 @@ export default function CalendarPage() {
         Your 30-Day Roadmap
       </h1>
 
+      {/* ✅ Progress Bar with userId */}
+      <ProgressBar userId={userId} />
+
       {/* ✅ Calendar Grid */}
       <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-4 mb-10">
         {Array.from({ length: 30 }, (_, i) => {
@@ -142,7 +149,10 @@ export default function CalendarPage() {
           return (
             <button
               key={day}
-              onClick={() => setSelectedDay(day)}
+              onClick={async () => {
+                setSelectedDay(day);
+                await fetchVideosForDay(day);
+              }}
               className={`rounded-xl p-4 text-sm font-semibold border transition duration-200 ${
                 selectedDay === day
                   ? 'bg-emerald-500 border-emerald-400'
@@ -159,7 +169,11 @@ export default function CalendarPage() {
       {/* loop through roadmap items and display them */}
       {selectedDay !== null && (
         <div className="animate-fade-in-up">
-          {selectedItem ? (
+          {videoLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader />
+            </div>
+          ) : selectedItem ? (
             <DaySection
               item={{
                 ...selectedItem,
