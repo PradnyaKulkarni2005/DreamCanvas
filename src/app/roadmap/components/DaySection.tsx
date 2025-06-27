@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 export default function DaySection({
   item,
   videoMap
+  
 }: {
   item: RoadmapItem & { topics?: string[]; topic?: string };
   videoMap: Record<string, VideoResult[]>;
@@ -117,17 +118,6 @@ console.log("UserID",userId)
         Day {item.day}
       </h2>
 
-      {/* Subtasks list */}
-      {item.subtasks && item.subtasks.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-md font-semibold text-white mb-2">Subtasks</h4>
-          <ul className="list-disc list-inside text-sm text-gray-300">
-            {item.subtasks.map((subtask, i) => (
-              <li key={i}>{subtask}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Topics + Videos */}
       {topics.map((topic) => (
@@ -147,6 +137,19 @@ console.log("UserID",userId)
               {topic}
             </h3>
           </div>
+
+
+           {/* Subtasks list */}
+      {item.subtasks && item.subtasks.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-md font-semibold text-white mb-2">Subtasks</h4>
+          <ul className="list-disc list-inside text-sm text-gray-300">
+            {item.subtasks.map((subtask, i) => (
+              <li key={i}>{subtask}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {videoMap[topic]?.length > 0 ? (
