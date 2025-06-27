@@ -7,12 +7,11 @@ import Swal from 'sweetalert2';
 // takes a roadmap item and a video map, rendering the day's section with topics and videos
 export default function DaySection({
   item,
-  videoMap,
-  userId
+  videoMap
 }: {
   item: RoadmapItem & { topics?: string[]; topic?: string };
   videoMap: Record<string, VideoResult[]>;
-  userId:string
+
 }) {
   // Normalize topics: prefer `topics`, fallback to single `topic`, else empty array
   // This ensures we handle both cases where `topics` is an array or a single string
@@ -23,9 +22,30 @@ export default function DaySection({
     : [];
 // State to store the videos for the current day
     const  [completed, setCompleted] = useState<Record<string, boolean>>({});
-
+    const [userId,setUserId] =useState<string | null>(null); // store the user id in state
+    // fetch the user
+    useEffect(() =>
+      {
+        // fetch the user from supabase session
+        const getUser = async () =>{
+          // get the user from the session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+// get the user id from the session and store it in userId
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+      } else {
+        console.error('No session/user found');
+      }
+    };
+    getUser();
+  }, []);
+          
+// fetch progress
     useEffect(() => {
     const fetchProgress = async () => {
+      if(!userId) return;
       // Fetch the user's progress from Supabase
       const { data, error } = await supabase
         .from('progress')
@@ -45,17 +65,21 @@ export default function DaySection({
     };
     // debugging line
 console.log("UserID",userId)
-    if (userId) {
+    
       fetchProgress();
-    }
+    
   }, [userId, item.day]);
 // Render the day's section with topics and videos
   const handleToggle = async (topic: string) => {
     // Toggle the completion status of the topic
+    if (!userId){
+      console.error('No user ID found');
+      return;
+    };
     const newValue = !completed[topic];
     // Update the state with the new completion status
     setCompleted((prev) => ({ ...prev, [topic]: newValue }));
-console.log("UserID",userId)
+
 // Insert the data into supabase
     const { error } = await supabase.from('progress').upsert(
       {
@@ -71,7 +95,7 @@ console.log("UserID",userId)
     // 
 
     if (!error && newValue) {
-      // alert(`✅ Completed: "${topic}" for Day ${item.day}`);
+     
       Swal.fire(
         {
           title: "Completed",
