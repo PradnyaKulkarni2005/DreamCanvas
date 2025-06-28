@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import DownloadPDFButton from '@/app/components/DownloadPDFButton';
+import { motion } from 'framer-motion';
+import { FaRegCalendarCheck } from 'react-icons/fa';
 
-// This interface defines the structure of each day's plan in the roadmap
-// It includes the day number, topic, and an array of subtasks
 interface DayPlan {
   day: number;
   topic: string;
@@ -14,7 +14,6 @@ interface DayPlan {
 }
 
 export default function RoadmapPage() {
-  // State variables to manage roadmap data, missing skills, user role, loading state, and save status
   const [roadmap, setRoadmap] = useState<DayPlan[]>([]);
   const [missingSkills, setMissingSkills] = useState<string[]>([]);
   const [role, setRole] = useState('');
@@ -23,7 +22,8 @@ export default function RoadmapPage() {
 
   const supabase = createClientComponentClient();
   const router = useRouter();
-// Function to save the target role to the users table
+
+  // Function to save the target role to the users table
   const saveTargetRoleToUsers = async (userId: string, role: string) => {
     const { error } = await supabase
       .from('users')
@@ -36,10 +36,8 @@ export default function RoadmapPage() {
       console.log('✅ User target role updated successfully');
     }
   };
-// Function to save the roadmap to Supabase
-// This function takes the roadmap data and the target role as parameters
-// It retrieves the current user, updates their target role, and saves the roadmap items
-// Each roadmap item is formatted to match the database schema before upserting
+
+  // Function to save the roadmap to Supabase
   const saveRoadmapToSupabase = async (roadmapToSave: DayPlan[], targetRole: string) => {
     const {
       data: { user },
@@ -52,18 +50,16 @@ export default function RoadmapPage() {
     }
 
     console.log("✅ User ID:", user.id);
-// Update the user's target role in the users table
+
     await saveTargetRoleToUsers(user.id, targetRole);
-// Format the roadmap items to match the database schema
-// Each item includes the user ID, day, topic, and subtasks
+
     const formatted = roadmapToSave.map(item => ({
       user_id: user.id,
       day: item.day,
       topic: item.topic,
       subtasks: item.subtasks,
     }));
-// Upsert the formatted roadmap items into the 'roadmap' table
-// This will insert new items or update existing ones based on user_id and day
+
     const { error } = await supabase
       .from("roadmap")
       .upsert(formatted, {
@@ -76,11 +72,9 @@ export default function RoadmapPage() {
       console.log("🎉 Roadmap saved (upserted) successfully");
     }
   };
-// useEffect hook to check authentication and load roadmap data
-  // This effect runs once when the component mounts
-  // It checks if the user is authenticated, fetches their role, and loads any existing
+
+  // useEffect hook to check authentication and load roadmap data
   useEffect(() => {
-    // Check if the user is authenticated and load their roadmap
     const checkAuthAndLoad = async () => {
       const {
         data: { user },
@@ -112,21 +106,34 @@ export default function RoadmapPage() {
       const localTarget = localStorage.getItem('targetRole');
       const alreadySaved = localStorage.getItem('hasSavedRoadmap');
 
-      // Step 3: Prefer database role, fallback to local
-      // If userRole is not set, use localTarget as a fallback
       const effectiveRole = userRole || localTarget || '';
 
-      // Save roadmap only if it exists and hasn't been saved before
-      // This prevents overwriting existing data unnecessarily
+      // Step 3a: If not saved yet, save from localStorage
       if (stored && !hasSaved && !alreadySaved) {
-        // Parse the stored roadmap and save it to Supabase
         const parsed = JSON.parse(stored);
         setRoadmap(parsed);
         await saveRoadmapToSupabase(parsed, effectiveRole);
         localStorage.setItem('hasSavedRoadmap', 'true');
         setHasSaved(true);
       }
-// Step 4: Load roadmap from local storage if available
+
+      // Step 3b: If already saved, fetch from Supabase
+      if (alreadySaved) {
+        const { data: existingRoadmap, error: roadmapError } = await supabase
+          .from('roadmap')
+          .select('day, topic, subtasks')
+          .eq('user_id', user.id)
+          .order('day');
+
+        if (roadmapError) {
+          console.error('❌ Failed to fetch roadmap:', roadmapError.message);
+        } else if (existingRoadmap?.length > 0) {
+          setRoadmap(existingRoadmap as DayPlan[]);
+          console.log('📥 Loaded existing roadmap from Supabase');
+        }
+      }
+
+      // Step 4: Load skills and role from local storage if needed
       if (skills) setMissingSkills(JSON.parse(skills));
       if (!userRole && localTarget) setRole(localTarget); // Fallback
 
@@ -139,36 +146,47 @@ export default function RoadmapPage() {
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 text-white animate-fade-in">
+    <div className="max-w-4xl mx-auto p-6 text-white animate-fade-in">
       <h1 className="text-3xl font-bold mb-4 text-emerald-400 animate-fade-in-up">
         Your Roadmap to Become a {role}
       </h1>
-{/* display the missing skills */}
+      {/* display the missing skills */}
       <p className="mb-6 text-lg text-gray-300 animate-fade-in-up delay-100">
         <strong className="text-white">Skills to Learn:</strong>{' '}
         {missingSkills.length > 0 ? missingSkills.join(', ') : 'None'}
       </p>
 
       <DownloadPDFButton targetId="roadmap-to-print" />
-{/* loop through the roadmap and display each days topics and subtopics */}
-      <div id="roadmap-to-print" className="bg-[#0d1117] text-white p-6 space-y-6">
+
+      {/* loop through the roadmap and display each day's topics and subtopics */}
+      <div
+        id="roadmap-to-print"
+        className="relative border-l-4 border-emerald-500/40 pl-6 mt-10 space-y-10"
+      >
         {roadmap.map((item, index) => (
-          <div
+          <motion.div
             key={item.day}
-            className="bg-[#161b22] border border-emerald-700/40 shadow-lg rounded-xl p-6 hover:shadow-emerald-500/30 transition duration-300 transform hover:-translate-y-1 animate-fade-in-up"
-            style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="relative bg-[#161b22] rounded-xl p-6 shadow-xl hover:shadow-emerald-500/20 transition-transform hover:-translate-y-1"
           >
-            <p className="text-xl font-semibold text-emerald-400 mb-2">
+            <div className="absolute -left-[30px] top-6 flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg">
+              <FaRegCalendarCheck />
+            </div>
+
+            <h2 className="text-xl font-bold text-emerald-400 mb-2">
               Day {item.day}: <span className="text-white">{item.topic}</span>
-            </p>
-            <ul className="list-disc list-inside pl-2 space-y-4 text-gray-300 text-sm">
+            </h2>
+
+            <ul className="list-disc pl-5 space-y-2 text-gray-300 text-sm">
               {item.subtasks.map((task, idx) => (
                 <li key={idx} className="hover:text-white transition">
                   {task}
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
