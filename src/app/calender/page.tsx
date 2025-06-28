@@ -6,19 +6,18 @@ import { RoadmapItem, VideoResult } from '@/types';
 import Loader from '@/app/components/Loader';
 import DaySection from '@/app/roadmap/components/DaySection';
 import ProgressBar from '../components/ProgressBar';
+import { motion } from 'framer-motion';
 
 export default function CalendarPage() {
-  // usestates for storing roadmap data, videos, selected day, and target role
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [roadmap, setRoadmap] = useState<RoadmapItem[]>([]);
   const [videoMap, setVideoMap] = useState<Record<string, VideoResult[]>>({});
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [target, setTarget] = useState('');
-  const [userId, setUserId] = useState<string>(''); // ✅ Add userId state
-  const [videoLoading, setVideoLoading] = useState(false); // ✅ Video loading state
+  const [userId, setUserId] = useState<string>('');
+  const [videoLoading, setVideoLoading] = useState(false);
 
-  // ✅ Fetch roadmap from Supabase
   useEffect(() => {
     const fetchRoadmap = async () => {
       const {
@@ -31,37 +30,28 @@ export default function CalendarPage() {
       }
 
       const userId = session.user.id;
-      setUserId(userId); // ✅ Save userId to state
-      console.log('🔍 Fetching roadmap for user:', userId);
+      setUserId(userId);
 
-      // ✅ Fetch the target role from users table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('target')
         .eq('id', userId)
         .single();
 
-      if (userError) {
-        console.error('❌ Failed to fetch target role:', userError.message);
-      } else if (userData?.target) {
-        setTarget(userData.target); // 🔑 Save to state
+      if (!userError && userData?.target) {
+        setTarget(userData.target);
       }
 
-      // ✅ Fetch the roadmap itself
-      // This retrieves all roadmap items for the current user
       const { data, error } = await supabase
         .from('roadmap')
         .select('*')
         .eq('user_id', userId);
 
       if (error || !Array.isArray(data)) {
-        console.error('❌ Failed to load roadmap', error);
         router.replace('/analyze');
         return;
       }
 
-      // ✅ Sort roadmap items by day
-      // [...data].sort((a, b) => Number(a.day) - Number(b.day)) - means we create a new array from data and sort it by day
       const sorted = [...data].sort((a, b) => Number(a.day) - Number(b.day));
       setRoadmap(sorted);
       setLoading(false);
@@ -70,7 +60,6 @@ export default function CalendarPage() {
     fetchRoadmap();
   }, [router]);
 
-  // ✅ Fetch videos for selected day only
   const fetchVideosForDay = async (day: number) => {
     const item = roadmap.find((i) => i.day === day);
     if (!item) return;
@@ -84,7 +73,6 @@ export default function CalendarPage() {
     const newVideoMap = { ...videoMap };
     let needFetch = false;
 
-    // Check if any topic is missing from cache
     for (const topic of topics) {
       if (!newVideoMap[topic]) {
         needFetch = true;
@@ -94,7 +82,7 @@ export default function CalendarPage() {
 
     if (!needFetch) return;
 
-    setVideoLoading(true); // ✅ Start loading spinner for video fetch
+    setVideoLoading(true);
 
     await Promise.all(
       topics.map(async (topic) => {
@@ -107,8 +95,7 @@ export default function CalendarPage() {
             body: JSON.stringify({ query: `${topic} for ${target}` }),
           });
 
-          if (!res.ok)
-            throw new Error(`YouTube API failed: ${res.statusText}`);
+          if (!res.ok) throw new Error(`YouTube API failed: ${res.statusText}`);
           const data = await res.json();
           newVideoMap[topic] = data || [];
         } catch (err) {
@@ -119,13 +106,12 @@ export default function CalendarPage() {
     );
 
     setVideoMap(newVideoMap);
-    setVideoLoading(false); // ✅ End loading spinner
+    setVideoLoading(false);
   };
 
-  // ✅ Show loading screen
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-[#0f172a]">
         <Loader />
       </div>
     );
@@ -135,40 +121,55 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 text-white">
-      <h1 className="text-3xl font-bold mb-6 text-center text-emerald-400">
-        Your 30-Day Roadmap
-      </h1>
+      <motion.h1
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-4xl font-extrabold mb-6 text-center bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent"
+      >
+        🚀 Your Personalized 30-Day Journey
+      </motion.h1>
 
-      {/* ✅ Progress Bar with userId */}
-      <ProgressBar userId={userId} />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <ProgressBar userId={userId} />
+      </motion.div>
 
-      {/* ✅ Calendar Grid */}
-      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-4 mb-10">
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-4 my-10">
         {Array.from({ length: 30 }, (_, i) => {
           const day = i + 1;
           return (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               key={day}
               onClick={async () => {
                 setSelectedDay(day);
                 await fetchVideosForDay(day);
               }}
-              className={`rounded-xl p-4 text-sm font-semibold border transition duration-200 ${
+              className={`rounded-xl p-4 text-sm font-semibold transition duration-200 shadow-md ${
                 selectedDay === day
-                  ? 'bg-emerald-500 border-emerald-400'
-                  : 'bg-[#161b22] border-gray-700 hover:bg-emerald-700'
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white'
+                  : 'bg-[#1e293b] hover:bg-emerald-600 text-gray-300'
               }`}
             >
               Day {day}
-            </button>
+            </motion.button>
           );
         })}
       </div>
 
-      {/* ✅ Selected Day Content */}
-      {/* loop through roadmap items and display them */}
       {selectedDay !== null && (
-        <div className="animate-fade-in-up">
+        <motion.div
+          key={selectedDay}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg"
+        >
           {videoLoading ? (
             <div className="flex justify-center items-center py-10">
               <Loader />
@@ -188,7 +189,7 @@ export default function CalendarPage() {
               No roadmap content found for Day {selectedDay}.
             </p>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );
