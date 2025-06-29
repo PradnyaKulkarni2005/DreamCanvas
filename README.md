@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌟 DreamCanvas
 
-## Getting Started
+**DreamCanvas** is your AI-powered personal career coach that generates a tailored **30-day learning roadmap** to help you become job-ready in your desired role. It integrates streaks, badges, progress tracking, and YouTube resources to create a gamified learning experience.
 
-First, run the development server:
+---
 
+## 🚀 Features
+
+- 🎯 **AI-Generated Roadmap**: Uses **GROQ AI** to create a personalized 30-day plan with **daily topics and subtasks**.
+- 🎥 **YouTube Integration**: Each subtask links to a relevant video for faster, guided learning.
+- 🔥 **Streak Tracking**: Maintain your learning consistency with streaks.
+- 🏆 **Gamification & Badges**:
+  - **Starter Day Badge**
+  - **3-Day, 7-Day, 14-Day Streak Badges**
+  - **Ultimate Finisher Badge**
+- 📈 **Progress Tracking**: Visual progress bar to track your roadmap completion.
+- 🧠 **Missing Skills Detection**: Suggests what you're lacking for your target role.
+- 🛠️ **Supabase Integration**: Secure authentication and data persistence using **Supabase**.
+
+---
+
+## 🖥️ Tech Stack
+
+- **Next.js 14** (App Router)
+- **TypeScript**
+- **GROQ AI** (via API)
+- **Supabase** (Auth + Database)
+- **Tailwind CSS**
+- **Framer Motion** (for animations)
+- **SweetAlert2** (user feedback modals)
+- **React Icons**
+- **PDF Exporting** via `html2pdf.js`
+
+---
+
+## 📸 Preview
+
+![Preview](https://via.placeholder.com/800x400?text=DreamCanvas+Screenshot)
+
+---
+
+## 🧑‍💻 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/DreamCanvas.git
+cd dreamcanvas
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+yarn
+```
+
+### 3. Setup Environment Variables
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+### 4. Run the Development Server
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛡️ Auth & Database (Supabase)
+✅ User authentication (login/register)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+✅ Saves target role & roadmap
 
-## Learn More
+✅ Fetches roadmap if previously saved
 
-To learn more about Next.js, take a look at the following resources:
+✅ Saves progress and badge status
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🌐 Live Demo
+### https://dreamcanvas-murex.vercel.app
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
