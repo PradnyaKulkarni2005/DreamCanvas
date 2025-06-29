@@ -128,6 +128,12 @@ export default function RoadmapPage() {
         console.log('📤 Saved roadmap from localStorage to Supabase');
       }
     }
+    {hasSaved && (
+  <div className="text-emerald-400 text-sm mt-2">
+    ✅ Your roadmap has been saved!
+  </div>
+)}
+
 
     // Step 3: Load skills
     const skills = localStorage.getItem('missingSkills');
