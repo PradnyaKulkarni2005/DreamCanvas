@@ -1,7 +1,9 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
+import { supabase } from '@/app/libs/supabaseClient'; // ✅ Make sure this is your initialized Supabase client
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,48 +11,42 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // ✅ Handle login using Supabase client directly (no fetch)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      // ✅ Supabase client handles session/cookie automatically
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await res.json();
       setLoading(false);
 
-      if (!res.ok) {
-        alert(data.error || 'Login failed');
+      if (error) {
+        console.error('Login error:', error.message);
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
-          text: 'Login failed',
-          position:"top"
-        })
+          text: error.message || 'Login failed',
+          position: 'top',
+        });
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem('token', data.token); // Optional: use cookies instead for security
-        router.push('/analyze');
-      } else {
-        alert('Invalid response from server');
-        
-      }
+      // ✅ Redirect to analyze page after successful login
+      router.push('/analyze');
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Unexpected login error:', error);
       setLoading(false);
-      
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'Something went wrong ,Please try again.',
-        position:"top"
-      })
+        text: 'Something went wrong, please try again.',
+        position: 'top',
+      });
     }
   };
 
