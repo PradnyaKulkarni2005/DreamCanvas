@@ -30,7 +30,7 @@ export default function AboutPage() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
-        DreamCanvas is your personal career guide that crafts a <span className="text-white font-semibold">30-day learning roadmap</span> based on the skills you already have and the role you&rsquo;re aiming for. Whether you&rsquo;re switching careers or upskilling — we've got your journey mapped.
+        DreamCanvas is your personal career guide that crafts a <span className="text-white font-semibold">30-day learning roadmap</span> based on the skills you already have and the role you&rsquo;re aiming for. Whether you&rsquo;re switching careers or upskilling — we&rsquo; got your journey mapped.
       </motion.p>
 
       <motion.div

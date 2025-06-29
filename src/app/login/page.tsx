@@ -53,12 +53,14 @@ export default function LoginPage() {
     }
 
     // ✅ Check if roadmap exists for this user
-    const { data: roadmapData, error: roadmapError } = await supabase
+    // ✅ Check if roadmap exists for this user
+    const { data: roadmapData } = await supabase
       .from('roadmap')
       .select('id')
       .eq('user_id', user.id)
       .limit(1)
       .maybeSingle(); // ✅ returns null if not found, no throw
+
 
     setLoading(false);
 

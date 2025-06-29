@@ -38,119 +38,115 @@ export default function RoadmapPage() {
   };
 
   // Function to save the roadmap to Supabase
- const saveRoadmapToSupabase = useCallback(async (roadmapToSave: DayPlan[], targetRole: string) => {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const saveRoadmapToSupabase = useCallback(
+    async (roadmapToSave: DayPlan[], targetRole: string) => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    console.error("❌ Failed to get user:", userError?.message || "User not logged in");
-    return;
-  }
+      if (userError || !user) {
+        console.error("❌ Failed to get user:", userError?.message || "User not logged in");
+        return;
+      }
 
-  console.log("✅ User ID:", user.id);
+      console.log("✅ User ID:", user.id);
 
-  await saveTargetRoleToUsers(user.id, targetRole);
+      await saveTargetRoleToUsers(user.id, targetRole);
 
-  const formatted = roadmapToSave.map(item => ({
-    user_id: user.id,
-    day: item.day,
-    topic: item.topic,
-    subtasks: item.subtasks,
-  }));
+      const formatted = roadmapToSave.map(item => ({
+        user_id: user.id,
+        day: item.day,
+        topic: item.topic,
+        subtasks: item.subtasks,
+      }));
 
-  const { error } = await supabase
-    .from("roadmap")
-    .upsert(formatted, {
-      onConflict: 'user_id,day',
-    });
+      const { error } = await supabase
+        .from("roadmap")
+        .upsert(formatted, {
+          onConflict: 'user_id,day',
+        });
 
-  if (error) {
-    console.error("❌ Upsert error:", error.message);
-  } else {
-    console.log("🎉 Roadmap saved (upserted) successfully");
-  }
-}, [supabase]);
+      if (error) {
+        console.error("❌ Upsert error:", error.message);
+      } else {
+        console.log("🎉 Roadmap saved (upserted) successfully");
+      }
+    },
+    [supabase, saveTargetRoleToUsers] // ✅ added missing dependency
+  );
 
   // useEffect hook to check authentication and load roadmap data
   useEffect(() => {
-  const checkAuthAndLoad = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const checkAuthAndLoad = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    // Step 1: Fetch user's target role
-    let userRole = '';
-    const { data: userData, error: userDataError } = await supabase
-      .from('users')
-      .select('target')
-      .eq('id', user.id)
-      .single();
-
-    if (!userDataError && userData?.target) {
-      userRole = userData.target;
-      setRole(userRole);
-    }
-
-    // Step 2: Try to fetch roadmap from Supabase
-    const { data: existingRoadmap, error: roadmapError } = await supabase
-      .from('roadmap')
-      .select('day, topic, subtasks')
-      .eq('user_id', user.id)
-      .order('day');
-
-    if (roadmapError) {
-      console.error('❌ Failed to fetch roadmap:', roadmapError.message);
-    }
-
-    if (existingRoadmap && existingRoadmap.length > 0) {
-      // Roadmap found → use it
-      setRoadmap(existingRoadmap as DayPlan[]);
-      console.log('📥 Loaded existing roadmap from Supabase');
-    } else {
-      // Roadmap not found → fallback to localStorage
-      const stored = localStorage.getItem('roadmap');
-      const localTarget = localStorage.getItem('targetRole');
-      const parsed = stored ? JSON.parse(stored) : null;
-      const target = userRole || localTarget || '';
-
-      if (parsed) {
-        setRoadmap(parsed);
-        await saveRoadmapToSupabase(parsed, target);
-        localStorage.setItem('hasSavedRoadmap', 'true');
-        setHasSaved(true);
-        console.log('📤 Saved roadmap from localStorage to Supabase');
+      if (!user) {
+        router.push('/login');
+        return;
       }
-    }
-    {hasSaved && (
-  <div className="text-emerald-400 text-sm mt-2">
-    ✅ Your roadmap has been saved!
-  </div>
-)}
 
+      // Step 1: Fetch user's target role
+      let userRole = '';
+      const { data: userData, error: userDataError } = await supabase
+        .from('users')
+        .select('target')
+        .eq('id', user.id)
+        .single();
 
-    // Step 3: Load skills
-    const skills = localStorage.getItem('missingSkills');
-    if (skills) setMissingSkills(JSON.parse(skills));
+      if (!userDataError && userData?.target) {
+        userRole = userData.target;
+        setRole(userRole);
+      }
 
-    // fallback role if user had none in DB
-    if (!userRole) {
-      const fallbackRole = localStorage.getItem('targetRole');
-      if (fallbackRole) setRole(fallbackRole);
-    }
+      // Step 2: Try to fetch roadmap from Supabase
+      const { data: existingRoadmap, error: roadmapError } = await supabase
+        .from('roadmap')
+        .select('day, topic, subtasks')
+        .eq('user_id', user.id)
+        .order('day');
 
-    setLoading(false);
-  };
+      if (roadmapError) {
+        console.error('❌ Failed to fetch roadmap:', roadmapError.message);
+      }
 
-  checkAuthAndLoad();
-}, [router, supabase, saveRoadmapToSupabase]);
+      if (existingRoadmap && existingRoadmap.length > 0) {
+        // Roadmap found → use it
+        setRoadmap(existingRoadmap as DayPlan[]);
+        console.log('📥 Loaded existing roadmap from Supabase');
+      } else {
+        // Roadmap not found → fallback to localStorage
+        const stored = localStorage.getItem('roadmap');
+        const localTarget = localStorage.getItem('targetRole');
+        const parsed = stored ? JSON.parse(stored) : null;
+        const target = userRole || localTarget || '';
 
+        if (parsed) {
+          setRoadmap(parsed);
+          await saveRoadmapToSupabase(parsed, target);
+          localStorage.setItem('hasSavedRoadmap', 'true');
+          setHasSaved(true);
+          console.log('📤 Saved roadmap from localStorage to Supabase');
+        }
+      }
+
+      // Step 3: Load skills
+      const skills = localStorage.getItem('missingSkills');
+      if (skills) setMissingSkills(JSON.parse(skills));
+
+      // fallback role if user had none in DB
+      if (!userRole) {
+        const fallbackRole = localStorage.getItem('targetRole');
+        if (fallbackRole) setRole(fallbackRole);
+      }
+
+      setLoading(false);
+    };
+
+    checkAuthAndLoad();
+  }, [router, supabase, saveRoadmapToSupabase]); // ✅ don't include hasSaved
 
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
@@ -159,6 +155,7 @@ export default function RoadmapPage() {
       <h1 className="text-3xl font-bold mb-4 text-emerald-400 animate-fade-in-up">
         Your Roadmap to Become a {role}
       </h1>
+
       {/* display the missing skills */}
       <p className="mb-6 text-lg text-gray-300 animate-fade-in-up delay-100">
         <strong className="text-white">Skills to Learn:</strong>{' '}
@@ -166,6 +163,13 @@ export default function RoadmapPage() {
       </p>
 
       <DownloadPDFButton targetId="roadmap-to-print" />
+
+      {/* ✅ moved the saved roadmap message to render section */}
+      {hasSaved && (
+        <div className="text-emerald-400 text-sm mt-2">
+          ✅ Your roadmap has been saved!
+        </div>
+      )}
 
       {/* loop through the roadmap and display each day's topics and subtopics */}
       <div
