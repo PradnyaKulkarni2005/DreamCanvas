@@ -13,42 +13,72 @@ export default function LoginPage() {
 
   // ✅ Handle login using Supabase client directly (no fetch)
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      // ✅ Supabase client handles session/cookie automatically
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  try {
+    // ✅ Sign in using Supabase client
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
+    if (error) {
       setLoading(false);
+      console.error('Login error:', error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: error.message || 'Login failed',
+        position: 'top',
+      });
+      return;
+    }
 
-      if (error) {
-        console.error('Login error:', error.message);
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: error.message || 'Login failed',
-          position: 'top',
-        });
-        return;
-      }
+    // ✅ Get logged-in user details
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-      // ✅ Redirect to analyze page after successful login
-      router.push('/analyze');
-    } catch (error) {
-      console.error('Unexpected login error:', error);
+    if (userError || !user) {
       setLoading(false);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'Something went wrong, please try again.',
+        text: 'Could not fetch user details.',
         position: 'top',
       });
+      return;
     }
-  };
+
+    // ✅ Check if roadmap exists for this user
+    const { data: roadmapData, error: roadmapError } = await supabase
+      .from('roadmap')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle(); // ✅ returns null if not found, no throw
+
+    setLoading(false);
+
+    // ✅ Redirect based on roadmap existence
+    if (roadmapData) {
+      router.push('/calendar'); // ✅ has roadmap
+    } else {
+      router.push('/analyze'); // ✅ no roadmap yet
+    }
+  } catch (err) {
+    console.error('Unexpected login error:', err);
+    setLoading(false);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: 'Something went wrong, please try again.',
+      position: 'top',
+    });
+  }
+};
 
   return (
     <form

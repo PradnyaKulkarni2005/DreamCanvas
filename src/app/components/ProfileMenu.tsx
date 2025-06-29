@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUserCircle, FaMapMarkedAlt, FaChartLine, FaRocket } from 'react-icons/fa';
+import { FaUserCircle, FaMapMarkedAlt, FaChartLine, FaRocket,FaInfoCircle} from 'react-icons/fa';
 import BadgeWall from '../components/BadgeWall';
 import { supabase } from '@/app/libs/supabaseClient';
 
@@ -76,55 +76,68 @@ export default function ProfileMenu({ isLoggedIn, onLogout }: ProfileMenuProps) 
             className="mt-2 w-64 bg-gray-900 text-white rounded-xl shadow-2xl absolute right-0 z-50 py-2"
           >
             {isLoggedIn ? (
-              <>
-                <button
-                  onClick={() => {
-                    setIsOpen(false); // close the menu
-                    setShowBadges(false);
-                    router.push('/calender'); // ✅ redirect
-                  }}
-                  className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
-                >
-                  <FaRocket /> Continue Your Journey
-                </button>
+  <>
+    <button
+      onClick={() => {
+        setIsOpen(false); // close the menu
+        setShowBadges(false);
+        router.push('/calender'); // ✅ redirect
+      }}
+      className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
+    >
+      <FaRocket /> Continue Your Journey
+    </button>
 
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    setShowBadges(false);
-                    router.push('/roadmap');
-                  }}
-                  className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
-                >
-                  <FaMapMarkedAlt /> View Your Roadmap
-                </button>
+        <button
+          onClick={() => {
+            setIsOpen(false);
+            setShowBadges(false);
+            router.push('/roadmap');
+          }}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
+        >
+          <FaMapMarkedAlt /> View Your Roadmap
+        </button>
 
-                <button
-                  onClick={() => {
-                    setShowBadges(prev => !prev);
-                  }}
-                  className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
-                >
-                  <FaChartLine /> View Your Progress
-                </button>
+        <button
+          onClick={() => {
+            setShowBadges(prev => !prev);
+          }}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
+        >
+          <FaChartLine /> View Your Progress
+        </button>
 
-                <div className="h-px bg-gray-700 my-1"></div>
+        {/* ✅ New About Section */}
+        <button
+          onClick={() => {
+            setIsOpen(false);
+            setShowBadges(false);
+            router.push('/about'); // ✅ Navigate to About page
+          }}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-emerald-700 transition"
+        >
+          <FaInfoCircle /> About DreamCanvas
+        </button>
 
-                <button
-                  onClick={onLogout}
-                  className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-600 text-red-400 transition"
-                >
-                  🔓 Logout
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="block px-4 py-2 hover:bg-emerald-700 transition"
-              >
-                🔑 Login
-              </Link>
-            )}
+        <div className="h-px bg-gray-700 my-1"></div>
+
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-red-600 text-red-400 transition"
+        >
+          🔓 Logout
+        </button>
+      </>
+    ) : (
+      <Link
+        href="/login"
+        className="block px-4 py-2 hover:bg-emerald-700 transition"
+      >
+        🔑 Login
+      </Link>
+    )}
+
           </motion.div>
         )}
       </AnimatePresence>

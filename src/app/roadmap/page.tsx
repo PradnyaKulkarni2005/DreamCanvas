@@ -75,73 +75,76 @@ export default function RoadmapPage() {
 
   // useEffect hook to check authentication and load roadmap data
   useEffect(() => {
-    const checkAuthAndLoad = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const checkAuthAndLoad = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push('/login');
-        return;
-      }
+    if (!user) {
+      router.push('/login');
+      return;
+    }
 
-      // Step 1: Fetch role (target) from users table
-      let userRole = '';
-      const { data: userData, error: userDataError } = await supabase
-        .from('users')
-        .select('target')
-        .eq('id', user.id)
-        .single();
+    // Step 1: Fetch user's target role
+    let userRole = '';
+    const { data: userData, error: userDataError } = await supabase
+      .from('users')
+      .select('target')
+      .eq('id', user.id)
+      .single();
 
-      if (userDataError) {
-        console.error('Failed to fetch user role:', userDataError.message);
-      } else if (userData?.target) {
-        userRole = userData.target;
-        setRole(userData.target);
-      }
+    if (!userDataError && userData?.target) {
+      userRole = userData.target;
+      setRole(userRole);
+    }
 
-      // Step 2: Get local storage items
+    // Step 2: Try to fetch roadmap from Supabase
+    const { data: existingRoadmap, error: roadmapError } = await supabase
+      .from('roadmap')
+      .select('day, topic, subtasks')
+      .eq('user_id', user.id)
+      .order('day');
+
+    if (roadmapError) {
+      console.error('❌ Failed to fetch roadmap:', roadmapError.message);
+    }
+
+    if (existingRoadmap && existingRoadmap.length > 0) {
+      // Roadmap found → use it
+      setRoadmap(existingRoadmap as DayPlan[]);
+      console.log('📥 Loaded existing roadmap from Supabase');
+    } else {
+      // Roadmap not found → fallback to localStorage
       const stored = localStorage.getItem('roadmap');
-      const skills = localStorage.getItem('missingSkills');
       const localTarget = localStorage.getItem('targetRole');
-      const alreadySaved = localStorage.getItem('hasSavedRoadmap');
+      const parsed = stored ? JSON.parse(stored) : null;
+      const target = userRole || localTarget || '';
 
-      const effectiveRole = userRole || localTarget || '';
-
-      // Step 3a: If not saved yet, save from localStorage
-      if (stored && !hasSaved && !alreadySaved) {
-        const parsed: DayPlan[] = JSON.parse(stored);
+      if (parsed) {
         setRoadmap(parsed);
-        await saveRoadmapToSupabase(parsed, effectiveRole);
+        await saveRoadmapToSupabase(parsed, target);
         localStorage.setItem('hasSavedRoadmap', 'true');
         setHasSaved(true);
+        console.log('📤 Saved roadmap from localStorage to Supabase');
       }
+    }
 
-      // Step 3b: If already saved, fetch from Supabase
-      if (alreadySaved) {
-        const { data: existingRoadmap, error: roadmapError } = await supabase
-          .from('roadmap')
-          .select('day, topic, subtasks')
-          .eq('user_id', user.id)
-          .order('day');
+    // Step 3: Load skills
+    const skills = localStorage.getItem('missingSkills');
+    if (skills) setMissingSkills(JSON.parse(skills));
 
-        if (roadmapError) {
-          console.error('❌ Failed to fetch roadmap:', roadmapError.message);
-        } else if (existingRoadmap?.length > 0) {
-          setRoadmap(existingRoadmap as DayPlan[]);
-          console.log('📥 Loaded existing roadmap from Supabase');
-        }
-      }
+    // fallback role if user had none in DB
+    if (!userRole) {
+      const fallbackRole = localStorage.getItem('targetRole');
+      if (fallbackRole) setRole(fallbackRole);
+    }
 
-      // Step 4: Load skills and role from local storage if needed
-      if (skills) setMissingSkills(JSON.parse(skills));
-      if (!userRole && localTarget) setRole(localTarget); // Fallback
+    setLoading(false);
+  };
 
-      setLoading(false);
-    };
+  checkAuthAndLoad();
+}, [router, supabase, saveRoadmapToSupabase]);
 
-    checkAuthAndLoad();
-  }, [hasSaved, router, supabase, saveRoadmapToSupabase]);
 
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
