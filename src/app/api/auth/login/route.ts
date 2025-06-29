@@ -13,7 +13,6 @@ import { cookies } from 'next/headers';
  */
 export async function POST(req: Request) {
   try {
-    
     const { email, password } = await req.json(); // Parse incoming request body
 
     // Validate request input
@@ -35,12 +34,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
+    // ✅ Ensure session cookies are set correctly by fetching session
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error('🔴 Session error:', sessionError);
+      return NextResponse.json({ error: 'Session error while logging in' }, { status: 500 });
+    }
+
     // ✅ Optionally, you can create a custom response object
     // for setting cookies or redirecting after successful login
     const response = NextResponse.json({ success: true, user: data.user });
-
-    // ✅ Ensure session cookies are set correctly by fetching session
-    await supabase.auth.getSession();
 
     return response;
   } catch (err: unknown) {
