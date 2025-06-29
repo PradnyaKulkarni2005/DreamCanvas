@@ -35,12 +35,13 @@ export async function POST(req: Request) {
     }
 
     // ✅ Ensure session cookies are set correctly by fetching session
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+const { error: sessionError } = await supabase.auth.getSession();
 
-    if (sessionError) {
-      console.error('🔴 Session error:', sessionError);
-      return NextResponse.json({ error: 'Session error while logging in' }, { status: 500 });
-    }
+if (sessionError) {
+  console.error('🔴 Session error:', sessionError);
+  return NextResponse.json({ error: 'Session error while logging in' }, { status: 500 });
+}
+
 
     // ✅ Optionally, you can create a custom response object
     // for setting cookies or redirecting after successful login
