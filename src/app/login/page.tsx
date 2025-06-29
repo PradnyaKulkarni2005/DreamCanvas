@@ -66,7 +66,7 @@ export default function LoginPage() {
 
     // ✅ Redirect based on roadmap existence
     if (roadmapData) {
-      router.push('/calendar'); // ✅ has roadmap
+      router.push('/calender'); // ✅ has roadmap
     } else {
       router.push('/analyze'); // ✅ no roadmap yet
     }
