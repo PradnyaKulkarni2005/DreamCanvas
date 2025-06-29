@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  images: {
+    domains: ['i.ytimg.com'], // 👈 Whitelist YouTube thumbnail domain
+  }
 };
 // next.config.js
 //exposed environment variables to the client side
