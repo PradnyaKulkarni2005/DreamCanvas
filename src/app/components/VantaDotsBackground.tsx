@@ -1,11 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import * as THREE from "three";
+import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+
+// Minimal Vanta instance shape
+type VantaEffect = {
+  destroy: () => void;
+};
 
 const VantaDotsBackground = () => {
   const vantaRef = useRef<HTMLDivElement>(null);
-  const vantaEffectRef = useRef<any>(null);
+  const vantaEffectRef = useRef<VantaEffect | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -13,14 +18,15 @@ const VantaDotsBackground = () => {
     const loadVanta = async () => {
       if (!mounted || !vantaRef.current) return;
 
-      (window as any).THREE = THREE;
-      const VANTA = await import("vanta/src/vanta.dots");
+      // Assign THREE to window
+      window.THREE = THREE;
 
-      // Destroy if already running
-      if (vantaEffectRef.current) {
-        vantaEffectRef.current.destroy();
-      }
+      const VANTA = await import('vanta/src/vanta.dots');
 
+      // Destroy previous instance if any
+      vantaEffectRef.current?.destroy();
+
+      // Initialize Vanta
       vantaEffectRef.current = VANTA.default({
         el: vantaRef.current,
         mouseControls: true,
@@ -42,10 +48,8 @@ const VantaDotsBackground = () => {
 
     return () => {
       mounted = false;
-      if (vantaEffectRef.current) {
-        vantaEffectRef.current.destroy();
-        vantaEffectRef.current = null;
-      }
+      vantaEffectRef.current?.destroy();
+      vantaEffectRef.current = null;
     };
   }, []);
 
@@ -54,7 +58,7 @@ const VantaDotsBackground = () => {
       ref={vantaRef}
       className="w-full h-screen"
       style={{
-        position: "fixed",
+        position: 'fixed',
         top: 0,
         left: 0,
         zIndex: -1,

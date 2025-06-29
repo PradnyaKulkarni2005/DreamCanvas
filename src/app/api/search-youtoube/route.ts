@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+type RequestBody = {
+  query: string;
+  target?: string;
+};
+
+type YouTubeVideoItem = {
+  id: {
+    videoId: string;
+  };
+  snippet: {
+    title: string;
+    channelTitle: string;
+    thumbnails: {
+      medium: {
+        url: string;
+      };
+    };
+  };
+};
+
+type YouTubeResult = {
+  title: string;
+  videoId: string;
+  channel: string;
+  thumbnail: string;
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { query, target } = await req.json();
+    const { query, target }: RequestBody = await req.json();
 
     if (!query) {
       return NextResponse.json({ error: 'Missing query' }, { status: 400 });
@@ -38,7 +65,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'YouTube API response malformed' }, { status: 500 });
     }
 
-    const results = data.items.map((item: any) => ({
+    const results: YouTubeResult[] = (data.items as YouTubeVideoItem[]).map((item) => ({
       title: item.snippet.title,
       videoId: item.id.videoId,
       channel: item.snippet.channelTitle,
@@ -46,8 +73,13 @@ export async function POST(req: NextRequest) {
     }));
 
     return NextResponse.json(results);
-  } catch (err) {
-    console.error('Unexpected error:', err);
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error('Unexpected error:', err.message);
+    } else {
+      console.error('Unexpected error:', err);
+    }
+
     return NextResponse.json({ error: 'Unexpected server error' }, { status: 500 });
   }
 }

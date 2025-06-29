@@ -86,9 +86,20 @@ Do not include markdown or explanations.
     }
 
     return NextResponse.json(json);
-  } catch (err: any) {
-    
-    console.error('❌ API error:', err.message || err);
-    return NextResponse.json({ error: 'Failed to fetch roadmap from LLaMA 3' }, { status: 500 });
+ } catch (err: unknown) {
+  let errorMessage = 'Unknown error';
+
+  if (err instanceof Error) {
+    errorMessage = err.message;
+    console.error('❌ API error:', err.message);
+  } else {
+    console.error('❌ API error:', err);
   }
+
+  return NextResponse.json(
+    { error: 'Failed to fetch roadmap from LLaMA 3', detail: errorMessage },
+    { status: 500 }
+  );
+}
+
 }

@@ -69,10 +69,15 @@ export default function AnalyzePage() {
 
 
       router.push('/roadmap');
-    } catch (err: any) {
-      console.error("Roadmap error:", err);
-      alert(err.message || "Error generating roadmap");
-    } finally {
+    } catch (err: unknown) {
+  console.error("Roadmap error:", err);
+
+  if (err instanceof Error) {
+    alert(err.message);
+  } else {
+    alert("Error generating roadmap");
+  }
+} finally {
       setLoading(false);
     }
   };

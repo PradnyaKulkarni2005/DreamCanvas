@@ -116,7 +116,7 @@ export default function LoginPage() {
       </div>
       <div className="px-8 py-4 bg-blue-200 dark:bg-zinc-800">
         <div className="text-sm text-blue-900 dark:text-blue-300 text-center">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <a className="font-medium underline" href="/register">
             Sign up
           </a>

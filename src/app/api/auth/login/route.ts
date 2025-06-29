@@ -13,7 +13,7 @@ import { cookies } from 'next/headers';
  */
 export async function POST(req: Request) {
   try {
-    const requestUrl = new URL(req.url); // Extract URL to use for redirection or session handling
+    
     const { email, password } = await req.json(); // Parse incoming request body
 
     // Validate request input

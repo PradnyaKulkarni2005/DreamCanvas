@@ -110,7 +110,7 @@ export default function RoadmapPage() {
 
       // Step 3a: If not saved yet, save from localStorage
       if (stored && !hasSaved && !alreadySaved) {
-        const parsed = JSON.parse(stored);
+        const parsed: DayPlan[] = JSON.parse(stored);
         setRoadmap(parsed);
         await saveRoadmapToSupabase(parsed, effectiveRole);
         localStorage.setItem('hasSavedRoadmap', 'true');
@@ -141,7 +141,7 @@ export default function RoadmapPage() {
     };
 
     checkAuthAndLoad();
-  }, [supabase, router, hasSaved]);
+  }, [hasSaved, router, supabase]);
 
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 
