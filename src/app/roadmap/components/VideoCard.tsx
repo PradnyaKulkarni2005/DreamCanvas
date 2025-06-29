@@ -14,12 +14,15 @@ export default function VideoCard({ video }: { video: VideoResult }) {
       {/* // Use a link to open the video in a new tab */}
       <div className="rounded-xl shadow-md p-2 bg-[#1e1e1e] hover:scale-105 transition duration-200">
         <div className="relative w-full h-48">
-          <img
-            src={video.thumbnail}
-            alt={video.title || 'YouTube Video Thumbnail'}
-            className="rounded w-full h-full object-cover"
-            loading="lazy"
-          />
+            <Image
+    src={video.thumbnail}
+    alt={video.title || 'YouTube Video Thumbnail'}
+    className="rounded"
+    layout="fill"
+    objectFit="cover"
+    loading="lazy"
+    unoptimized // ✅ Important to prevent 400 errors
+  />
         </div>
 
         <p className="text-sm font-medium mt-2 text-white line-clamp-2">

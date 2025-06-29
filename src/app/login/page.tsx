@@ -64,7 +64,7 @@ export default function LoginPage() {
           Welcome Back!
         </h2>
         <p className="text-center text-zinc-600 dark:text-zinc-400 mt-3">
-          We missed you, sign in to continue.
+          Sign in to continue your Journey to Success.
         </p>
         <div className="mt-10">
           <div className="relative">

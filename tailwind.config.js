@@ -2,6 +2,10 @@ module.exports = {
   content: ['./src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+    montserrat: ['Montserrat', 'sans-serif'],
+    roboto: ['Roboto', 'sans-serif'],
+     },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out both',
         'fade-in-up': 'fadeInUp 0.6s ease-out both',

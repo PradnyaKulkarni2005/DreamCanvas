@@ -50,7 +50,7 @@ export default function Page() {
       {/* Center content */}
       <div className="flex flex-col items-center justify-center h-screen text-center z-10 relative px-4">
         <motion.h1
-          className="text-5xl font-bold mb-4 text-white"
+          className="font-montserrat text-7xl font-bold mb-4 text-white"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -59,7 +59,7 @@ export default function Page() {
         </motion.h1>
 
         <motion.p
-          className="mb-6 text-white text-lg max-w-md"
+          className="font-roboto mb-6 text-white text-lg max-w-md"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}

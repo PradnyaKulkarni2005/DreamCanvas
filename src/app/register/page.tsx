@@ -67,7 +67,7 @@ export default function RegisterPage() {
           Create an Account
         </h2>
         <p className="text-center text-zinc-600 dark:text-zinc-400 mt-3">
-          Join us and get started.
+         Start your Journey Now !
         </p>
         <div className="mt-10">
           <div className="relative">
