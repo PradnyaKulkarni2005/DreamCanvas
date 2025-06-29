@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import DownloadPDFButton from '@/app/components/DownloadPDFButton';
@@ -38,40 +38,40 @@ export default function RoadmapPage() {
   };
 
   // Function to save the roadmap to Supabase
-  const saveRoadmapToSupabase = async (roadmapToSave: DayPlan[], targetRole: string) => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+ const saveRoadmapToSupabase = useCallback(async (roadmapToSave: DayPlan[], targetRole: string) => {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    if (userError || !user) {
-      console.error("❌ Failed to get user:", userError?.message || "User not logged in");
-      return;
-    }
+  if (userError || !user) {
+    console.error("❌ Failed to get user:", userError?.message || "User not logged in");
+    return;
+  }
 
-    console.log("✅ User ID:", user.id);
+  console.log("✅ User ID:", user.id);
 
-    await saveTargetRoleToUsers(user.id, targetRole);
+  await saveTargetRoleToUsers(user.id, targetRole);
 
-    const formatted = roadmapToSave.map(item => ({
-      user_id: user.id,
-      day: item.day,
-      topic: item.topic,
-      subtasks: item.subtasks,
-    }));
+  const formatted = roadmapToSave.map(item => ({
+    user_id: user.id,
+    day: item.day,
+    topic: item.topic,
+    subtasks: item.subtasks,
+  }));
 
-    const { error } = await supabase
-      .from("roadmap")
-      .upsert(formatted, {
-        onConflict: 'user_id,day',
-      });
+  const { error } = await supabase
+    .from("roadmap")
+    .upsert(formatted, {
+      onConflict: 'user_id,day',
+    });
 
-    if (error) {
-      console.error("❌ Upsert error:", error.message);
-    } else {
-      console.log("🎉 Roadmap saved (upserted) successfully");
-    }
-  };
+  if (error) {
+    console.error("❌ Upsert error:", error.message);
+  } else {
+    console.log("🎉 Roadmap saved (upserted) successfully");
+  }
+}, [supabase]);
 
   // useEffect hook to check authentication and load roadmap data
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function RoadmapPage() {
     };
 
     checkAuthAndLoad();
-  }, [hasSaved, router, supabase]);
+  }, [hasSaved, router, supabase, saveRoadmapToSupabase]);
 
   if (loading) return <div className="text-white p-6">Loading your roadmap...</div>;
 

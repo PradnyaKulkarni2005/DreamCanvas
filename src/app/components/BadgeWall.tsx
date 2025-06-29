@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/app/libs/supabaseClient';
 import { FaFire, FaStar } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
+import Image from 'next/image'; // ✅ Import Next.js Image component
+
 // takes props userid
 export default function BadgeWall({
   userId,
@@ -18,7 +20,7 @@ export default function BadgeWall({
   const [points, setPoints] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
 
-// fetch badges from supabase
+  // fetch badges from supabase
   useEffect(() => {
     const fetchBadges = async () => {
       // fetch badges from supabase
@@ -26,23 +28,25 @@ export default function BadgeWall({
         .from('badges')
         .select('badge_name')
         .eq('user_id', userId);
-// set badges state
+      // set badges state
       if (data) setBadges(data.map((b) => b.badge_name));
     };
-// fetch points from supabase
+
+    // fetch points from supabase
     const fetchUserStats = async () => {
       const { data } = await supabase
         .from('users')
         .select('points, streak')
         .eq('id', userId)
         .single();
-// set points and streak state  
+      // set points and streak state  
       if (data) {
         setPoints(data.points || 0);
         setStreak(data.streak || 0);
       }
     };
-// fetch badges and user stats
+
+    // fetch badges and user stats
     if (userId) {
       fetchBadges();
       fetchUserStats();
@@ -52,10 +56,10 @@ export default function BadgeWall({
   const getBadgeImage = (badgeName: string) => {
     // return badge image based on badge name
     if (badgeName === 'Day 1 Start') return '/badges/day1_start.png';
-    
+
     if (badgeName === 'Ultimate Finisher') return '/badges/ultimate_finisher.png';
-    
-// return badges for streak
+
+    // return badges for streak
     const streakMatch = badgeName.match(/^(\d+)-Day Streak$/);
     // return badge image based on streak
     if (streakMatch) {
@@ -130,11 +134,15 @@ export default function BadgeWall({
                   whileTap={{ scale: 0.95 }}
                   className="text-center"
                 >
-                  <img
-                    src={getBadgeImage(badge)}
-                    alt={badge}
-                    className="w-20 h-20 sm:w-24 sm:h-24 mx-auto object-contain"
-                  />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto">
+                    <Image
+                      src={getBadgeImage(badge)}
+                      alt={badge}
+                      fill
+                      className="object-contain"
+                      loading="lazy"
+                    />
+                  </div>
                   <p className="text-sm mt-2 text-white">{badge}</p>
                 </motion.div>
               ))}

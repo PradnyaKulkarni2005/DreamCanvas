@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { VideoResult } from '@/types';
 
 export default function VideoCard({ video }: { video: VideoResult }) {
@@ -12,12 +13,16 @@ export default function VideoCard({ video }: { video: VideoResult }) {
     >
       {/* // Use a link to open the video in a new tab */}
       <div className="rounded-xl shadow-md p-2 bg-[#1e1e1e] hover:scale-105 transition duration-200">
-        <img
-          src={video.thumbnail}
-          alt={video.title || 'YouTube Video Thumbnail'}
-          className="rounded w-full"
-          loading="lazy"
-        />
+        <div className="relative w-full h-48">
+          <Image
+            src={video.thumbnail}
+            alt={video.title || 'YouTube Video Thumbnail'}
+            className="rounded"
+            layout="fill"
+            objectFit="cover"
+            loading="lazy"
+          />
+        </div>
         <p className="text-sm font-medium mt-2 text-white line-clamp-2">
           {video.title}
         </p>
