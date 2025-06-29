@@ -19,25 +19,22 @@
 
 ---
 
-## 🖥️ Tech Stack
+## 🧰 Tech Stack
 
-- **Next.js 14** (App Router)
-- **TypeScript**
-- **GROQ AI** (via API)
-- **Supabase** (Auth + Database)
-- **Tailwind CSS**
-- **Framer Motion** (for animations)
-- **SweetAlert2** (user feedback modals)
-- **React Icons**
-- **PDF Exporting** via `html2pdf.js`
-
----
-
-## 📸 Preview
-
-![Preview](https://via.placeholder.com/800x400?text=DreamCanvas+Screenshot)
+| Tech            | Badge |
+|-----------------|--------|
+| ![Next.js](https://img.shields.io/badge/Next.js-000?logo=nextdotjs&logoColor=white) | **App Router** |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white) | Strong typing |
+| ![Supabase](https://img.shields.io/badge/Supabase-3ecf8e?logo=supabase&logoColor=white) | Auth & DB |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) | Styling |
+| ![GROQ](https://img.shields.io/badge/GROQ_AI-000000?logo=openai&logoColor=white) | AI Roadmap |
+| ![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?logo=framer&logoColor=white) | Animations |
+| ![SweetAlert2](https://img.shields.io/badge/SweetAlert2-FF5F5F?logo=javascript&logoColor=white) | Alerts |
+| ![React Icons](https://img.shields.io/badge/React_Icons-61DAFB?logo=react&logoColor=white) | Icon set |
+| ![html2pdf.js](https://img.shields.io/badge/html2pdf.js-ff69b4?logo=javascript&logoColor=white) | PDF Export |
 
 ---
+
 
 ## 🧑‍💻 Getting Started
 
