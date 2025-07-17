@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { VideoResult } from '@/types';
+import { VideoResult } from '@/_types';
 
 export default function VideoCard({ video }: { video: VideoResult }) {
   return (

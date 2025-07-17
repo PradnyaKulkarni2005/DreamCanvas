@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 import Loader from '@/app/components/Loader';
 import RoleSelector from '@/app/components/RoleSelector';
 import '@/app/components/inputfield.css';

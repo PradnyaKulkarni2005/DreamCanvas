@@ -4,7 +4,7 @@
 import './globals.css';
 import BackgroundWrapper from '@/app/components/BackgroundWrapper';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

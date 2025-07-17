@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
-import { supabase } from '@/app/libs/supabaseClient'; // ✅ Make sure this is your initialized Supabase client
+import { supabase } from '@/app/_libs/supabaseClient'; // ✅ Make sure this is your initialized Supabase client
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

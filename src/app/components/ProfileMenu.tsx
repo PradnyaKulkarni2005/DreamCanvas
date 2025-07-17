@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUserCircle, FaMapMarkedAlt, FaChartLine, FaRocket,FaInfoCircle} from 'react-icons/fa';
 import BadgeWall from '../components/BadgeWall';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 
 type ProfileMenuProps = {
   // prop showing the login state passed from the parent

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 import { FaFire, FaStar } from 'react-icons/fa';
 import { IoClose } from 'react-icons/io5';
 import Image from 'next/image'; // ✅ Import Next.js Image component

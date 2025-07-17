@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 import VantaDotsBackground from '@/app/components/VantaDotsBackground';
 import ProfileMenu from '@/app/components/ProfileMenu';
 import BadgeWall from '@/app/components/BadgeWall';

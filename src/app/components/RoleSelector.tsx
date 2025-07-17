@@ -1,5 +1,5 @@
 'use client';
-import { roles } from '@/app/libs/roles'; // import the roles array from the roles module
+import { roles } from '@/app/_libs/roles'; // import the roles array from the roles module
 import { useState } from 'react';
 
 export default function RoleSelector({

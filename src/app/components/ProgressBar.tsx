@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 
 export default function ProgressBar({ userId }: { userId: string }) {
     // State to store the progress of the user as per the day count

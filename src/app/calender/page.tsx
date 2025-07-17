@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/app/libs/supabaseClient';
-import { RoadmapItem, VideoResult } from '@/types';
+import { supabase } from '@/app/_libs/supabaseClient';
+import { RoadmapItem, VideoResult } from '@/_types';
 import Loader from '@/app/components/Loader';
 import DaySection from '@/app/roadmap/components/DaySection';
 import ProgressBar from '../components/ProgressBar';

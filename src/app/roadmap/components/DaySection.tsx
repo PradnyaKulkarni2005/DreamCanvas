@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/app/libs/supabaseClient';
+import { supabase } from '@/app/_libs/supabaseClient';
 import VideoCard from './VideoCard';
 import Swal from 'sweetalert2';
-import { RoadmapItem, VideoResult } from '@/types';
+import { RoadmapItem, VideoResult } from '@/_types';
 // takes a list of roadmap items and returns a list of video cards
 export default function DaySection({
   item,
