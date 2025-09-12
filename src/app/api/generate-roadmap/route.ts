@@ -113,15 +113,21 @@ Do not include markdown or explanations.
 
     // return final response
     return NextResponse.json(json);
-  } catch (err: any) {
-    // catch and log any unexpected errors
-    console.error("❌ API error full object:", err);
+  } catch (err: unknown) {
+  // catch and log any unexpected errors
+  if (err instanceof Error) {
+    console.error("❌ API error:", err.message);
     return NextResponse.json(
-      {
-        error: "Failed to fetch roadmap from LLaMA 3",
-        detail: err.message || err,
-      },
+      { error: "Failed to fetch roadmap from LLaMA 3", detail: err.message },
       { status: 500 }
     );
   }
+
+  console.error("❌ Unknown API error:", err);
+  return NextResponse.json(
+    { error: "Failed to fetch roadmap from LLaMA 3", detail: "Unknown error" },
+    { status: 500 }
+  );
 }
+}
+
