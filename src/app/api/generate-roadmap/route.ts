@@ -9,7 +9,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY;
 // Groq API endpoint for chat completions
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 // MODEL - the specific model to use for the API request
-const MODEL = "llama3-70b-8192";
+const MODEL = "llama-3.3-70b-versatile";
 
 // Ensure Node.js runtime (not Edge, since axios/fetch in Edge may behave differently)
 export const runtime = "nodejs";
