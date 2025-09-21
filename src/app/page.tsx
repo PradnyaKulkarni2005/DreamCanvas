@@ -6,6 +6,7 @@ import { supabase } from '@/app/_libs/supabaseClient';
 import VantaDotsBackground from '@/app/components/VantaDotsBackground';
 import ProfileMenu from '@/app/components/ProfileMenu';
 import BadgeWall from '@/app/components/BadgeWall';
+import JobChecker from '@/app/JobDetection/page';
 import { motion } from 'framer-motion';
 
 export default function Page() {
@@ -13,6 +14,8 @@ export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showBadgeWall, setShowBadgeWall] = useState(false);
+  const [showJobChecker, setShowJobChecker] = useState(false); // ✅ new state for JobChecker
+
   const router = useRouter();
 
   useEffect(() => {
@@ -27,7 +30,8 @@ export default function Page() {
     };
     checkSession();
   }, []);
-// handles logout
+  
+  // handles logout
   const handleLogout = async () => {
     // removing user session from supabase
     await supabase.auth.signOut();
@@ -75,56 +79,77 @@ export default function Page() {
             transition={{ delay: 1.2, duration: 0.6 }}
           >
             <button
-  onClick={async () => {
-    // if a user is not logged in redirect to login
-    if (!userId) {
-      router.push('/login');
-      return;
-    }
-// if logged in check if it has roadmap
-//if roadmap then -> calender
-//else -> analyze
-    const { data, error } = await supabase
-      .from('roadmap')
-      .select('id')
-      .eq('user_id', userId)
-      .limit(1)
-      .single();
+              onClick={async () => {
+                // if a user is not logged in redirect to login
+                if (!userId) {
+                  router.push('/login');
+                  return;
+                }
+                // if logged in check if it has roadmap
+                //if roadmap then -> calender
+                //else -> analyze
+                const { data, error } = await supabase
+                  .from('roadmap')
+                  .select('id')
+                  .eq('user_id', userId)
+                  .limit(1)
+                  .single();
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking roadmap:', error.message);
-      router.push('/analyze');
-      return;
-    }
+                if (error && error.code !== 'PGRST116') {
+                  console.error('Error checking roadmap:', error.message);
+                  router.push('/analyze');
+                  return;
+                }
 
-    if (data) {
-      router.push('/calender');
-    } else {
-      router.push('/analyze');
-    }
-  }}
-  className="group relative inline-block font-semibold leading-6 text-white shadow-2xl cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 hover:shadow-emerald-600 rounded-2xl bg-neutral-900 p-px shadow-emerald-900"
->
-  <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-sky-600 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
-  <span className="relative z-10 block px-6 py-3 rounded-2xl bg-neutral-950">
-    <div className="relative z-10 flex items-center space-x-3">
-      <span className="transition-all duration-500 group-hover:translate-x-1.5 group-hover:text-emerald-300">
-        Get Started
-      </span>
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        className="w-7 h-7 transition-all duration-500 group-hover:translate-x-1.5 group-hover:text-emerald-300"
-      >
-        <path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" />
-      </svg>
-    </div>
-  </span>
-</button>
-
+                if (data) {
+                  router.push('/calender');
+                } else {
+                  router.push('/analyze');
+                }
+              }}
+              className="group relative inline-block font-semibold leading-6 text-white shadow-2xl cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 hover:shadow-emerald-600 rounded-2xl bg-neutral-900 p-px shadow-emerald-900"
+            >
+              <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-sky-600 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
+              <span className="relative z-10 block px-6 py-3 rounded-2xl bg-neutral-950">
+                <div className="relative z-10 flex items-center space-x-3">
+                  <span className="transition-all duration-500 group-hover:translate-x-1.5 group-hover:text-emerald-300">
+                    Get Started
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-7 h-7 transition-all duration-500 group-hover:translate-x-1.5 group-hover:text-emerald-300"
+                  >
+                    <path d="M16.172 11l-5.364-5.364 1.414-1.414L20 12l-7.778 7.778-1.414-1.414L16.172 13H4v-2z" />
+                  </svg>
+                </div>
+              </span>
+            </button>
           </motion.div>
         )}
+
+        {/* ✅ New button to open Job Checker */}
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 1.4, duration: 0.6 }}
+          className="mt-6"
+        >
+          <button
+            onClick={() => setShowJobChecker((prev) => !prev)}
+            className="group relative inline-block font-semibold leading-6 text-white shadow-2xl cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 active:scale-95 hover:shadow-cyan-600 rounded-2xl bg-neutral-900 p-px shadow-cyan-900"
+          >
+            <span className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-600 p-[2px] opacity-0 transition-opacity duration-500 group-hover:opacity-100"></span>
+            <span className="relative z-10 block px-6 py-3 rounded-2xl bg-neutral-950">
+              <div className="relative z-10 flex items-center space-x-3">
+                <span className="transition-all duration-500 group-hover:translate-x-1.5 group-hover:text-cyan-300">
+                  {showJobChecker ? "Hide Job Checker" : "Check Job Post"}
+                </span>
+              </div>
+            </span>
+          </button>
+        </motion.div>
 
         {/* Toggle Badge Wall */}
         {isLoggedIn && userId && (
@@ -154,6 +179,25 @@ export default function Page() {
             className="max-w-5xl w-full bg-black/70 backdrop-blur-md rounded-2xl p-6 shadow-lg overflow-auto max-h-[90vh]"
           >
             <BadgeWall userId={userId} />
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* ✅ Job Checker overlay */}
+      {showJobChecker && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center z-20 p-4"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="max-w-3xl w-full bg-black/70 backdrop-blur-md rounded-2xl p-6 shadow-lg overflow-auto max-h-[90vh]"
+          >
+            <JobChecker />
           </motion.div>
         </motion.div>
       )}
