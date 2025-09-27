@@ -21,6 +21,7 @@ export default function JobChecker() {
       const data = await res.json();
       setResult(data.prediction === 1 ? "⚠️ Fake Job Posting" : "✅ Real Job Posting");
     } catch (err) {
+      console.error(err);
       setResult("❌ Error connecting to API");
     }
 
