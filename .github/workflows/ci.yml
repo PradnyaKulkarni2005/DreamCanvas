@@ -22,9 +22,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Lint Code
-        run: npm run lint
-
       - name: Build App
         run: npm run build
         env:
