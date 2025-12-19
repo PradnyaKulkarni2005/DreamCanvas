@@ -41,16 +41,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
 
-    const finalQuery = target ? `${query} ${target}` : query;
+    //  Improve search intent
+    const finalQuery = `${query} ${target ?? ''} tutorial explained`;
+
     const searchParams = new URLSearchParams({
       part: 'snippet',
       q: finalQuery,
       type: 'video',
-      maxResults: '6',
+      maxResults: '12',               // fetch more, filter later
+      order: 'viewCount',             // very important
+      videoDuration: 'medium',        // avoid shorts
+      relevanceLanguage: 'en',
+      safeSearch: 'strict',
       key: apiKey,
     });
 
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?${searchParams}`);
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?${searchParams}`
+    );
 
     if (!res.ok) {
       const errorBody = await res.text();
@@ -61,25 +69,22 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
 
     if (!data.items) {
-      console.error('No items in response:', data);
       return NextResponse.json({ error: 'YouTube API response malformed' }, { status: 500 });
     }
 
-    const results: YouTubeResult[] = (data.items as YouTubeVideoItem[]).map((item) => ({
-      title: item.snippet.title,
-      videoId: item.id.videoId,
-      channel: item.snippet.channelTitle,
-      thumbnail: item.snippet.thumbnails.medium.url,
-    }));
+    const results: YouTubeResult[] = data.items
+      .filter((item: YouTubeVideoItem) => item.id?.videoId)
+      .slice(0, 5) // show only top 5
+      .map((item: YouTubeVideoItem) => ({
+        title: item.snippet.title,
+        videoId: item.id.videoId,
+        channel: item.snippet.channelTitle,
+        thumbnail: item.snippet.thumbnails.medium.url,
+      }));
 
     return NextResponse.json(results);
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('Unexpected error:', err.message);
-    } else {
-      console.error('Unexpected error:', err);
-    }
-
+  } catch (err) {
+    console.error('Unexpected error:', err);
     return NextResponse.json({ error: 'Unexpected server error' }, { status: 500 });
   }
 }
