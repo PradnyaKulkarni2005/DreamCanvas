@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, CheckCircle, XCircle, Shield, AlertTriangle, Sparkles } from "lucide-react";
+import { X, Loader2, CheckCircle, XCircle, Shield, AlertTriangle, Sparkles, Brain, Info } from "lucide-react";
 
 type ResultType = {
   label: string;
@@ -16,11 +16,13 @@ export default function JobChecker({ onClose }: JobCheckerProps) {
   const [description, setDescription] = useState("");
   const [result, setResult] = useState<ResultType | null>(null);
   const [loading, setLoading] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+    setExplanation(null);
 
     try {
       const res = await fetch(
@@ -38,13 +40,33 @@ export default function JobChecker({ onClose }: JobCheckerProps) {
 
       const data = await res.json();
 
+      const label =
+        data.prediction === 1
+          ? "⚠️ Fake Job Posting"
+          : "✅ Real Job Posting";
+
       setResult({
-        label:
-          data.prediction === 1
-            ? "⚠️ Fake Job Posting"
-            : "✅ Real Job Posting",
+        label,
         confidence: data.confidence,
       });
+
+      // Call Explainable AI API
+      try {
+        const explainRes = await fetch("/api/explain-job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            description,
+            prediction: data.prediction,
+          }),
+        });
+
+        const explainData = await explainRes.json();
+        setExplanation(explainData.explanation);
+      } catch (err) {
+        console.error("Explain API failed", err);
+        setExplanation(null);
+      }
     } catch (error) {
       console.error(error);
       setResult({
@@ -64,8 +86,6 @@ export default function JobChecker({ onClose }: JobCheckerProps) {
         <div className="absolute bottom-10 right-20 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
       </div>
-
-      
 
       <div className="relative z-10 w-full max-w-4xl">
         {/* Header Section */}
@@ -126,62 +146,108 @@ export default function JobChecker({ onClose }: JobCheckerProps) {
 
           {/* Result Display */}
           {result && (
-            <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div
-                className={`relative overflow-hidden rounded-2xl p-6 ${
-                  result.label.includes("Fake")
-                    ? "bg-gradient-to-br from-red-900/40 to-orange-900/40 border border-red-500/30"
-                    : result.label.includes("Real")
-                    ? "bg-gradient-to-br from-emerald-900/40 to-cyan-900/40 border border-emerald-500/30"
-                    : "bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border border-yellow-500/30"
-                }`}
-              >
-                {/* Background decoration */}
-                <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
-                
-                <div className="relative space-y-3">
-                  {/* Result Header */}
-                  <div className="flex items-center justify-center gap-3">
-                    {result.label.includes("Fake") ? (
-                      <div className="p-2.5 bg-red-500/20 rounded-full">
-                        <AlertTriangle className="w-7 h-7 text-red-400" />
+            <div className="mt-6 space-y-4">
+              {/* Main Result Card */}
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div
+                  className={`relative overflow-hidden rounded-2xl p-6 ${
+                    result.label.includes("Fake")
+                      ? "bg-gradient-to-br from-red-900/40 to-orange-900/40 border border-red-500/30"
+                      : result.label.includes("Real")
+                      ? "bg-gradient-to-br from-emerald-900/40 to-cyan-900/40 border border-emerald-500/30"
+                      : "bg-gradient-to-br from-yellow-900/40 to-orange-900/40 border border-yellow-500/30"
+                  }`}
+                >
+                  {/* Background decoration */}
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+                  
+                  <div className="relative space-y-3">
+                    {/* Result Header */}
+                    <div className="flex items-center justify-center gap-3">
+                      {result.label.includes("Fake") ? (
+                        <div className="p-2.5 bg-red-500/20 rounded-full">
+                          <AlertTriangle className="w-7 h-7 text-red-400" />
+                        </div>
+                      ) : result.label.includes("Real") ? (
+                        <div className="p-2.5 bg-emerald-500/20 rounded-full">
+                          <CheckCircle className="w-7 h-7 text-emerald-400" />
+                        </div>
+                      ) : (
+                        <div className="p-2.5 bg-yellow-500/20 rounded-full">
+                          <XCircle className="w-7 h-7 text-yellow-400" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Result Text */}
+                    <div className="text-center space-y-2">
+                      <h3 className="text-2xl md:text-3xl font-bold">
+                        {result.label}
+                      </h3>
+                    </div>
+
+                    {/* Additional Info */}
+                    {result.label.includes("Fake") && (
+                      <div className="mt-4 p-3 bg-black/20 rounded-xl border border-red-500/20">
+                        <p className="text-xs md:text-sm text-gray-300 text-center">
+                          <strong className="text-red-400">Warning:</strong> This posting shows characteristics of fraudulent job listings. Be cautious and verify through official channels.
+                        </p>
                       </div>
-                    ) : result.label.includes("Real") ? (
-                      <div className="p-2.5 bg-emerald-500/20 rounded-full">
-                        <CheckCircle className="w-7 h-7 text-emerald-400" />
-                      </div>
-                    ) : (
-                      <div className="p-2.5 bg-yellow-500/20 rounded-full">
-                        <XCircle className="w-7 h-7 text-yellow-400" />
+                    )}
+                    
+                    {result.label.includes("Real") && (
+                      <div className="mt-4 p-3 bg-black/20 rounded-xl border border-emerald-500/20">
+                        <p className="text-xs md:text-sm text-gray-300 text-center">
+                          <strong className="text-emerald-400">Good News:</strong> This posting appears legitimate. Still, always research the company independently.
+                        </p>
                       </div>
                     )}
                   </div>
-
-                  {/* Result Text */}
-                  <div className="text-center space-y-2">
-                    <h3 className="text-2xl md:text-3xl font-bold">
-                      {result.label}
-                    </h3>
-                  </div>
-
-                  {/* Additional Info */}
-                  {result.label.includes("Fake") && (
-                    <div className="mt-4 p-3 bg-black/20 rounded-xl border border-red-500/20">
-                      <p className="text-xs md:text-sm text-gray-300 text-center">
-                        <strong className="text-red-400">Warning:</strong> This posting shows characteristics of fraudulent job listings. Be cautious and verify through official channels.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {result.label.includes("Real") && (
-                    <div className="mt-4 p-3 bg-black/20 rounded-xl border border-emerald-500/20">
-                      <p className="text-xs md:text-sm text-gray-300 text-center">
-                        <strong className="text-emerald-400">Good News:</strong> This posting appears legitimate. Still, always research the company independently.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
+
+              {/* AI Explanation Card */}
+              {explanation && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: '200ms' }}>
+                  <div className="backdrop-blur-xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border border-slate-700/50 shadow-xl overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-emerald-600/20 to-cyan-600/20 border-b border-slate-700/50 px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500/20 rounded-lg">
+                          <Brain className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                            AI Analysis Explanation
+                            <Sparkles className="w-4 h-4 text-emerald-400" />
+                          </h4>
+                          <p className="text-xs text-gray-400">Understanding the decision</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-5 space-y-4">
+                      {/* Info Badge */}
+                      <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-blue-300">
+                          Our AI model analyzed multiple factors in the job posting to determine its authenticity.
+                        </p>
+                      </div>
+
+                      {/* Explanation Text */}
+                      <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/30">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-200 leading-relaxed font-sans">
+                          {explanation}
+                        </pre>
+                      </div>
+
+                      
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
