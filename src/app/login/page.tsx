@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
-import { supabase } from '@/app/_libs/supabaseClient'; // ✅ Make sure this is your initialized Supabase client
+import { supabase } from '@/app/_libs/supabaseClient';
+import { motion } from 'framer-motion';
+import { Mail, Lock, Sparkles, ArrowRight, LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,145 +13,229 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Handle login using Supabase client directly (no fetch)
   const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    // ✅ Sign in using Supabase client
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
+      if (error) {
+        setLoading(false);
+        console.error('Login error:', error.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: error.message || 'Login failed',
+          position: 'top',
+        });
+        return;
+      }
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        setLoading(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Could not fetch user details.',
+          position: 'top',
+        });
+        return;
+      }
+
+      const { data: roadmapData } = await supabase
+        .from('roadmap')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle();
+
       setLoading(false);
-      console.error('Login error:', error.message);
+
+      if (roadmapData) {
+        router.push('/calender');
+      } else {
+        router.push('/analyze');
+      }
+    } catch (err) {
+      console.error('Unexpected login error:', err);
+      setLoading(false);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: error.message || 'Login failed',
+        text: 'Something went wrong, please try again.',
         position: 'top',
       });
-      return;
     }
-
-    // ✅ Get logged-in user details
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setLoading(false);
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Could not fetch user details.',
-        position: 'top',
-      });
-      return;
-    }
-
-    // ✅ Check if roadmap exists for this user
-    // ✅ Check if roadmap exists for this user
-    const { data: roadmapData } = await supabase
-      .from('roadmap')
-      .select('id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .maybeSingle(); // ✅ returns null if not found, no throw
-
-
-    setLoading(false);
-
-    // ✅ Redirect based on roadmap existence
-    if (roadmapData) {
-      router.push('/calender'); // ✅ has roadmap
-    } else {
-      router.push('/analyze'); // ✅ no roadmap yet
-    }
-  } catch (err) {
-    console.error('Unexpected login error:', err);
-    setLoading(false);
-    Swal.fire({
-      icon: 'error',
-      title: 'Oops...',
-      text: 'Something went wrong, please try again.',
-      position: 'top',
-    });
-  }
-};
+  };
 
   return (
-    <form
-      onSubmit={handleLogin}
-      className="bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl overflow-hidden border-4 border-blue-400 dark:border-blue-800 max-w-md mx-auto mt-20"
-    >
-      <div className="px-8 py-10 md:px-10">
-        <h2 className="text-4xl font-extrabold text-center text-zinc-800 dark:text-white">
-          Welcome Back!
-        </h2>
-        <p className="text-center text-zinc-600 dark:text-zinc-400 mt-3">
-          Sign in to continue your Journey to Success.
-        </p>
-        <div className="mt-10">
-          <div className="relative">
-            <label
-              className="block mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-200"
-              htmlFor="email"
-            >
-              Email
-            </label>
-            <input
-              placeholder="you@example.com"
-              className="block w-full px-4 py-3 mt-2 text-zinc-800 bg-white border-2 rounded-lg dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-opacity-50 focus:outline-none focus:ring focus:ring-blue-400"
-              name="email"
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 -left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 -right-20 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-md"
+      >
+        {/* Logo/Brand Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-4 backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm text-emerald-400 font-medium">Career Growth Platform</span>
           </div>
-          <div className="mt-6">
-            <label
-              className="block mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-200"
-              htmlFor="password"
-            >
-              Password
-            </label>
-            <input
-              placeholder="••••••••"
-              className="block w-full px-4 py-3 mt-2 text-zinc-800 bg-white border-2 rounded-lg dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-200 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-opacity-50 focus:outline-none focus:ring focus:ring-blue-400"
-              name="password"
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mt-10">
-            <button
-              className="w-full px-4 py-3 tracking-wide text-white transition-colors duration-200 transform bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:from-blue-700 hover:to-cyan-700 focus:outline-none focus:ring-4 focus:ring-blue-400 dark:focus:ring-blue-800"
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-slate-400 text-sm">
+            Continue your journey to success
+          </p>
+        </motion.div>
+
+        {/* Login Form Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
+        >
+          <form onSubmit={handleLogin} className="p-8 space-y-6">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-slate-300"
+              >
+                Email Address
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="you@example.com"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-300"
+              >
+                Password
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="w-5 h-5 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full pl-12 pr-4 py-3.5 bg-slate-900/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-200"
+                />
+              </div>
+            </div>
+
+            {/* Forgot Password Link */}
+            <div className="flex justify-end">
+              <a
+                href="/forgot-password"
+                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                Forgot password?
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
+              className="w-full relative group overflow-hidden bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-semibold px-6 py-3.5 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20"
             >
-              {loading ? 'Logging in...' : "Let's Go"}
-            </button>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-cyan-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5" />
+                  <span>Sign In</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </motion.button>
+          </form>
+
+          {/* Sign Up Link */}
+          <div className="px-8 py-6 bg-gradient-to-r from-slate-800/50 to-slate-900/50 border-t border-white/5">
+            <p className="text-center text-sm text-slate-400">
+              Don't have an account?{' '}
+              <a
+                href="/register"
+                className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                Sign up now
+              </a>
+            </p>
           </div>
-        </div>
-      </div>
-      <div className="px-8 py-4 bg-blue-200 dark:bg-zinc-800">
-        <div className="text-sm text-blue-900 dark:text-blue-300 text-center">
-          Don&apos;t have an account?{' '}
-          <a className="font-medium underline" href="/register">
-            Sign up
-          </a>
-        </div>
-      </div>
-    </form>
+        </motion.div>
+
+        {/* Additional Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="mt-6 text-center"
+        >
+          <p className="text-xs text-slate-500">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </motion.div>
+      </motion.div>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </div>
   );
 }
